@@ -40,6 +40,8 @@
 
 Обычный **основной remote — `origin`** на хостинге (GitHub, GitLab, Bitbucket и т.д.): от него клонируют, на него пушат, открывают pull/merge request.
 
+**Текущий репозиторий проекта:** [github.com/d1ot/palizh-analytics](https://github.com/d1ot/palizh-analytics) (`git clone https://github.com/d1ot/palizh-analytics.git`). В локальной копии для `origin` может быть задан `pushurl` на SSH (`git@github.com:d1ot/palizh-analytics.git`), чтобы push шёл по ключу.
+
 **Подключить облако к уже существующей копии с историей:**
 
 1. Создайте **пустой** репозиторий на хостинге (без README/LICENSE, если не хотите ручной разбор первого коммита).
