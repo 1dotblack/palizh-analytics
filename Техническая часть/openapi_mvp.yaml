@@ -8,7 +8,11 @@ info:
     Current scope includes public client application submission, invitation-based
     account activation, JWT authentication, password recovery, current user profile,
     catalog browsing, cart management, checkout preview, order creation, order history,
-    claims submission, document retrieval, and admin settings.
+    claims submission, document retrieval, admin settings, and **incoming integration
+    from 1C** (`/integrations/1c/*`): catalog full/delta sync, event webhook, optional
+    order status PUT for smoke tests. Auth: HMAC signature + IP allowlist (see
+    `Интеграция_1С.md` §4.3–§4.4). Calls **from platform to 1C** (e.g. GET counterparty
+    by GUID) are not described here — they are client-side to the 1C HTTP services.
 servers:
   - url: https://api.palizh.example/api/v1
     description: Example production URL
@@ -23,6 +27,11 @@ tags:
   - name: Documents
   - name: Training
   - name: Admin
+  - name: Integration 1C
+    description: >
+      Server-to-server endpoints called **by 1C** (outbound from 1C to platform).
+      Not for browser or mobile clients. First catalog load is **full**; subsequent
+      updates are **deltas** (ЧТЗ 09, согласование 2026-04-21).
 paths:
   /public/client-applications:
     post:
@@ -1451,12 +1460,172 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /integrations/1c/events:
+    post:
+      tags:
+        - Integration 1C
+      summary: Inbound webhook — events from 1С
+      description: >
+        Canonical channel for order status changes, documents, delivery details,
+        counterparty updates. Idempotent by `event_id`. See `Интеграция_1С.md` §4.3.
+      operationId: postOneCEvent
+      security:
+        - oneCIntegrationHmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneCEventEnvelope'
+      responses:
+        '200':
+          description: Event accepted (sync processing)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationInboundAcceptedResponse'
+        '202':
+          description: Event accepted for async processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationInboundAcceptedResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid or missing HMAC / not allowed source IP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /integrations/1c/catalog/sync:
+    post:
+      tags:
+        - Integration 1C
+      summary: Catalog import — full initial load or delta
+      description: >
+        **full** — first-time or rebuild of catalog tree (folders + nomenclature).
+        **delta** — only changed items since last sync. Payload JSON is agreed with
+        1C developers (`Задание_1С_разработчику.md`); structure may evolve.
+      operationId: postOneCCatalogSync
+      security:
+        - oneCIntegrationHmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneCCatalogSyncRequest'
+      responses:
+        '202':
+          description: Import job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneCCatalogSyncAcceptedResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid HMAC / IP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /integrations/1c/orders/{oneCOrderGuid}:
+    put:
+      tags:
+        - Integration 1C
+      summary: Push order status from 1С (optional smoke path)
+      description: >
+        Simpler alternative to the event envelope for early integration tests.
+        Prefer `POST /integrations/1c/events` with `event_type=order.status_changed`
+        for production. Available after backend deployment (согласование 2026-04-21).
+      operationId: putOneCOrderStatus
+      security:
+        - oneCIntegrationHmac: []
+      parameters:
+        - name: oneCOrderGuid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: GUID заказа клиента в 1С (`oneCOrderGuid` on platform).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneCOrderStatusPushRequest'
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationInboundAcceptedResponse'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid HMAC / IP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Order not found for given GUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    oneCIntegrationHmac:
+      type: apiKey
+      in: header
+      name: X-Palizh-Signature
+      description: >
+        HMAC-SHA256 over the raw request body; format `t=<unix_ts>, v1=<hex>`.
+        Replay window and secrets — `Интеграция_1С.md` §4.3. IP allowlist on platform side.
   schemas:
     ClientApplicationCreateRequest:
       type: object
@@ -2074,6 +2243,11 @@ components:
     ProductAttribute:
       type: object
       additionalProperties: false
+      description: >
+        Attribute value on a product in catalog API responses: stable `code`, human-readable
+        `name`, and `value`. No separate GET /product-attributes is required for MVP if
+        these fields are always present (согласование 2026-04-21). Optional `valueType`
+        documents the kind of value for UI/analytics.
       required:
         - code
         - name
@@ -2083,6 +2257,11 @@ components:
           type: string
         name:
           type: string
+        valueType:
+          type:
+            - string
+            - 'null'
+          description: Optional hint (string, number, boolean, enum, …).
         value:
           type:
             - string
@@ -3232,3 +3411,122 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MyTrainingApplicationItem'
+    OneCObjectRef:
+      type: object
+      description: Reference to an entity in 1С / on the platform (shape varies by event_type).
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          description: e.g. order, document, counterparty
+        one_c_guid:
+          type: string
+        platform_order_id:
+          type: string
+    OneCEventEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+        - event_id
+        - event_type
+        - occurred_at
+        - source
+        - object_ref
+      properties:
+        event_id:
+          type: string
+          format: uuid
+          description: Idempotency key; duplicate event_id returns 200 without reprocessing.
+        event_type:
+          type: string
+          description: >
+            Examples — order.status_changed, order.synced, order.sync_failed,
+            document.available, delivery.details_updated, counterparty.updated
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+            - 1c
+        object_ref:
+          $ref: '#/components/schemas/OneCObjectRef'
+        payload:
+          type: object
+          additionalProperties: true
+          description: Event-specific data (status, document meta, delivery, etc.).
+    IntegrationInboundAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        eventId:
+          type: string
+          format: uuid
+          description: Echo of inbound `event_id` from `OneCEventEnvelope` when applicable.
+        jobId:
+          type: string
+          description: Optional async job id for catalog import.
+    OneCCatalogSyncRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - mode
+        - payload
+      properties:
+        mode:
+          type: string
+          enum:
+            - full
+            - delta
+          description: full — first full load or rebuild; delta — only changes.
+        batchId:
+          type: string
+          format: uuid
+          description: Optional idempotency / correlation id for the batch.
+        payload:
+          type: object
+          additionalProperties: true
+          description: >
+            Folder tree + nomenclature / changed items as agreed with 1С
+            (`Задание_1С_разработчику.md`, блок номенклатура). Structure TBD with 1С team.
+    OneCCatalogSyncAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - jobId
+        - status
+      properties:
+        jobId:
+          type: string
+        status:
+          type: string
+          enum:
+            - accepted
+            - processing
+    OneCOrderStatusPushRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        platformOrderId:
+          type: string
+          description: Platform order id if already known; optional if only 1С GUID is used.
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        paymentStatus:
+          oneOf:
+            - $ref: '#/components/schemas/PaymentStatus'
+            - type: 'null'
+        occurredAt:
+          type: string
+          format: date-time
+        notes:
+          type:
+            - string
+            - 'null'
+          description: Optional short note for audit / support.

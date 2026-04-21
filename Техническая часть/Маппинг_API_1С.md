@@ -2,6 +2,8 @@
 
 Рабочий документ для сопоставления полей платформенного API (`openapi_mvp.yaml`) с объектами и реквизитами 1С ERP 2.5.22.
 
+**Входящие вызовы 1С → платформа** (события, импорт каталога, push статуса заказа): см. [`openapi_mvp_integration_1c.md`](openapi_mvp_integration_1c.md) и тег `Integration 1C` в `openapi_mvp.yaml`. Маппинг **тела** `OneCCatalogSyncRequest.payload` и полей `payload` в `OneCEventEnvelope` дополняется по мере согласования с 1С.
+
 ## Как работать с этим документом
 
 1. Колонки **API поле** и **Тип API** заполнены из `openapi_mvp.yaml`.
