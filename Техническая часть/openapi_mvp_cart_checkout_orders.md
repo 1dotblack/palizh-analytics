@@ -283,4 +283,4 @@ Endpoint должен:
 - `ЧТЗ/08_ЛК_заказы_статусы.md`
 - `Техническая часть/order_lifecycle_contract.md`
 - `Техническая часть/document_delivery_contract.md`
-- `Техническая часть/openapi_mvp.yaml`
+- `Техническая часть/openapi_client_mvp.yaml`

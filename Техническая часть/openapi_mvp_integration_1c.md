@@ -1,8 +1,12 @@
-# OpenAPI MVP: интеграция 1С → платформа
+# OpenAPI: интеграция 1С → платформа
 
-Дополнение к [`openapi_mvp.yaml`](openapi_mvp.yaml): **входящие** server-to-server методы, которые вызывает **1С** на API платформы. Публичные `GET /catalogs`, `GET /products` и т.д. описаны в [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md).
+Контракт в YAML: [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml). **Принятые решения** (тимлид): [`Принятые_решения_API_интеграция_1С.md`](Принятые_решения_API_интеграция_1С.md). Черновик с примерами JSON: [`входящие/incoming-hooks.md`](../входящие/incoming-hooks.md).
 
-**Не входит в этот файл:** вызовы **платформы к HTTP-сервисам 1С** (например `GET` контрагента по одному `GUID`, `GET categories` в 1С) — это клиентские запросы бэкенда к 1С, контракт задаётся на стороне 1С.
+Публичные `GET` каталога, корзина, заказы — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml), пояснения в [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md). **Сводка методов и этапов** — [`1C_API_контракт_и_этапы.md`](1C_API_контракт_и_этапы.md). См. [`OpenAPI_индекс.md`](OpenAPI_индекс.md).
+
+**Вызовы бэкенда к HTTP 1С** (заказ, документ) — [`1c-http-openapi.yaml`](1c-http-openapi.yaml), то же в черновике: [`входящие/1c-http-openapi.yaml`](../входящие/1c-http-openapi.yaml).
+
+**Обучение** с 1С **не** интегрируется; программы/заявки — в [`openapi_mvp_полный_черновик.yaml`](openapi_mvp_полный_черновик.yaml) (тег `Training`), **не** в `openapi_client_mvp.yaml`.
 
 ---
 
@@ -10,7 +14,7 @@
 
 | Механизм | Описание |
 |----------|----------|
-| `X-Palizh-Signature` | HMAC-SHA256 по сырому телу запроса; формат `t=<unix_ts>, v1=<hex>` |
+| `X-Palizh-Signature` | HMAC-SHA256 по **сырому** телу запроса; формат `t=<unix_ts>, v1=<hex>` |
 | IP allowlist | Исходящие IP контура 1С занесены на платформе |
 | Схема в OpenAPI | `oneCIntegrationHmac` (apiKey в header) |
 
@@ -18,15 +22,13 @@
 
 ---
 
-## 2. Endpoints (канонический контракт в YAML)
+## 2. Endpoint (канон)
 
 | Метод | Path | Назначение |
 |-------|------|------------|
-| `POST` | `/integrations/1c/events` | События: статус заказа, документы, доставка, контрагент и т.д. Тело — `OneCEventEnvelope`. Идемпотентность по `event_id`. |
-| `POST` | `/integrations/1c/catalog/sync` | Импорт каталога: `mode=full` (первая полная выгрузка или пересбор) или `mode=delta` (только изменения). Тело `payload` — JSON дерева/пакета по согласованию с 1С. |
-| `PUT` | `/integrations/1c/orders/{oneCOrderGuid}` | Опциональный упрощённый путь для обкатки: push статуса заказа без полного envelope. В проде предпочтительно событие `order.status_changed` в `POST .../events`. |
+| `POST` | `/exchange` | **Единый** вход: поля `event` + `payload`. События MVP: `sync.products`, `sync.counterparties`, `sync.categories`. Успех: **202** + тело `ExchangeAcceptedResponse` (см. YAML). |
 
-Ответы успеха: `200` / `202` + `IntegrationInboundAcceptedResponse` (и `OneCCatalogSyncAcceptedResponse` для каталога).
+Идемпотентность пакетов, размеры payload, ретраи — по мере внедрения; базовая подпись тела **обязательна** (см. принятые решения).
 
 ---
 
@@ -34,23 +36,19 @@
 
 | Схема | Назначение |
 |-------|------------|
-| `OneCEventEnvelope` | `event_id`, `event_type`, `occurred_at`, `source: 1c`, `object_ref`, `payload` |
-| `OneCObjectRef` | Гибкая ссылка на сущность (`type`, `one_c_guid`, `platform_order_id`, …) |
-| `OneCCatalogSyncRequest` | `mode`, опционально `batch_id`, `payload` (произвольный объект от 1С) |
-| `OneCCatalogSyncAcceptedResponse` | `jobId`, `status` |
-| `OneCOrderStatusPushRequest` | `status`, опционально `platform_order_id`, `payment_status`, `occurred_at` |
-| `IntegrationInboundAcceptedResponse` | `ok`, опционально `eventId`, `jobId` |
+| `OneCExchangeRequest` | `event` (строка, перечисление в YAML), `payload` (object или array) |
+| `ExchangeAcceptedResponse` | `ok: true` при 202 (можно расширить jobId и т.д.) |
+| `ErrorResponse`, `ValidationErrorResponse` | Ошибки |
 
 ---
 
 ## 4. Связь с бизнес-документами
 
-- ЧТЗ: [`ЧТЗ/09_интеграция_1С.md`](../ЧТЗ/09_интеграция_1С.md) §4.1 (full/delta, инициатор 1С).
+- ЧТЗ: [`ЧТЗ/09_интеграция_1С.md`](../ЧТЗ/09_интеграция_1С.md) (инициатор 1С, последовательные пакеты, дельты).
 - Техническая архитектура: [`Интеграция_1С.md`](Интеграция_1С.md).
-- Задание 1С: [`Задание_1С_разработчику.md`](Задание_1С_разработчику.md).
 
 ---
 
-## 5. Атрибуты товаров в публичном API
+## 5. Атрибуты товара в публичном API
 
-Схема `ProductAttribute` в `openapi_mvp.yaml`: в ответе по товару достаточно `code`, `name`, `value` (и опционально `valueType`). Отдельный ресурс «справочник всех атрибутов» для MVP **не обязателен** — см. [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md) §1.
+Схема `ProductAttribute` в `openapi_client_mvp.yaml`: в ответе по товару достаточно `code`, `name`, `value` — см. [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md) §1. Импорт из 1С в теле `sync.products` согласуется с полями в `входящие/incoming-hooks.md` и маппингом.
