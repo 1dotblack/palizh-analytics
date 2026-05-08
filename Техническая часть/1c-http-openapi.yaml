@@ -1,0 +1,235 @@
+# HTTP API на стороне 1С: вызовы с бэкенда платформы (публикации 1С).
+# Пути и схемы — по принятым решениям (спека тимлида, см. Принятые_решения_API_интеграция_1С.md).
+# Каталог/номенклатура на витрину приходит в платформу через POST /exchange (1С → платформу), не через этот файл.
+openapi: 3.0.3
+info:
+  title: 1C HTTP API
+  version: 0.2.0
+  description: |
+    Сервисы **1С**, которые вызывает **бэкенд платформы** (платформа → 1С).
+
+    Имена путей: **`POST /post_orders`**, **`GET /get_documents`** (query `type`, `guid`) — как в реализации публикации 1С (см. `входящие/1c-http-openapi.yaml`).
+
+    Входящий импорт на платформу: **`POST /exchange`** в `openapi_1c_inbound_mvp.yaml`.
+
+    Идентификаторы: варианты/номенклатура в заказе — `productVariantGuid` и т.д. Согласование с `openapi_client_mvp.yaml` — `Маппинг_API_1С.md`.
+servers:
+  - url: /
+  - url: http://palitra.udm.ru:8181/demo_2/hs/b2b/
+    description: Пример тестовой публикации (не прод-канон; см. `входящие/1c-http-openapi.yaml`)
+security:
+  - basicAuth: []
+tags:
+  - name: Orders
+    description: Заказы
+  - name: Documents
+    description: Документы
+paths:
+  /post_orders:
+    post:
+      # Создание «Заказа клиента» в 1С; идемпотентность по externalGuid.
+      description: Создать заказ в 1С. Тело — `OrderCreateRequest`.
+      operationId: createOrder
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCreateResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: Conflict (order with same externalGuid already exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /get_documents:
+    get:
+      # Выдача файла документа (JSON + base64). Параметры type/guid — как в 1С.
+      description: Получить метаданные и содержимое документа (base64).
+      operationId: downloadDocument
+      tags:
+        - Documents
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 0
+        - name: guid
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: 9c1b2c3d-4e5f-6789-aaaa-bbbbbbbbbbbb
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDownloadResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    # Зачем: отсечь неавторизованные запросы к публикациям 1С; учётка на стороне заказчика; при необходимости + белый список IP.
+    basicAuth:
+      type: http
+      scheme: basic
+      description: >
+        Аутентификация HTTP-сервиса 1С. Платформа предъявляет логин/пароль при вызове 1С.
+        Не путать с HMAC на входе 1С → платформу (`openapi_1c_inbound_mvp.yaml`).
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    Money:
+      type: object
+      title: Денежная сумма
+      required:
+        - currency
+        - amount
+      properties:
+        currency:
+          type: string
+          description: Валюта (ISO 4217).
+          example: RUB
+        amount:
+          type: number
+          description: Сумма.
+          example: 1290.5
+    OrderCreateRequest:
+      type: object
+      title: Создание заказа
+      description: Запрос на создание заказа в 1С. externalGuid — связь с заказом на платформе и идемпотентность.
+      required:
+        - externalGuid
+        - counterpartyGuid
+        - deliveryAddress
+        - items
+      properties:
+        externalGuid:
+          type: string
+          format: uuid
+          description: GUID заказа на платформе (ключ идемпотентности).
+          example: 9c1b2c3d-4e5f-6789-aaaa-bbbbbbbbbbbb
+        counterpartyGuid:
+          type: string
+          format: uuid
+          description: GUID контрагента в 1С.
+          example: 6f9619ff-8b86-d011-b42d-00c04fc964ff
+        deliveryAddress:
+          type: string
+          description: Адрес доставки одной строкой.
+          example: 109012, г. Москва, ул. Примерная, д. 1
+        comment:
+          type: string
+          nullable: true
+          description: Комментарий к заказу.
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderCreateItem'
+    OrderCreateItem:
+      type: object
+      title: Позиция заказа
+      required:
+        - productVariantGuid
+        - quantity
+      properties:
+        productVariantGuid:
+          type: string
+          format: uuid
+          description: GUID варианта товара в 1С.
+        quantity:
+          type: integer
+          minimum: 1
+        priceBase:
+          allOf:
+            - $ref: '#/components/schemas/Money'
+          nullable: true
+          description: Базовая цена за единицу для сверки.
+        priceFinal:
+          allOf:
+            - $ref: '#/components/schemas/Money'
+          nullable: true
+          description: Финальная (после скидок) цена за единицу для сверки.
+    OrderCreateResponse:
+      type: object
+      title: Результат создания заказа
+      required:
+        - orderGuid
+      properties:
+        orderGuid:
+          type: string
+          format: uuid
+          description: GUID созданного заказа в 1С.
+    DocumentDownloadResponse:
+      type: object
+      title: Скачивание документа
+      required:
+        - fileName
+        - contentType
+        - dataBase64
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+        dataBase64:
+          type: string
+          format: byte
+          description: Содержимое файла в base64.
+    ErrorResponse:
+      type: object
+      title: Ошибка
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          nullable: true

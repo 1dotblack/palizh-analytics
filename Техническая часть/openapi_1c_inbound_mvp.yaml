@@ -1,0 +1,151 @@
+# Канон: 1С → платформа — единый вебхук POST /exchange (спека тимлида). Публичный API — openapi_client_mvp.yaml
+# Принятые решения: Техническая часть/Принятые_решения_API_интеграция_1С.md; черновик тимлида: входящие/incoming-hooks.md
+---
+openapi: 3.1.0
+info:
+  title: Palizh — входящая интеграция 1С → платформа
+  version: 0.2.0
+  summary: 'Server-to-server: HMAC, единый POST /exchange'
+  description: |
+    Входящие вызовы **от 1С** на API платформы (без UI). **Один эндпоинт** `POST /exchange`:
+    тело JSON с полями `event` и `payload` (см. `входящие/incoming-hooks.md`).
+
+    Успешный приём пакета — **`202 Accepted`** (обработка асинхронно), по спецификации тимлида.
+
+    Подпись HMAC, allowlist IP — `Интеграция_1С.md` §4.3–4.4.
+
+    **Публичный** API витрины/ЛК — `openapi_client_mvp.yaml`. **Исходящие** вызовы к HTTP 1С — `1c-http-openapi.yaml`.
+servers:
+- url: https://api.palizh.example/api/v1
+  description: Example production URL (путь к `/exchange` уточняется при внедрении)
+tags:
+- name: Integration 1C
+  description: |
+    Вызовы от 1С на API платформы (server-to-server). События каталога и справочников —
+    значения `event`: `sync.products`, `sync.counterparties`, `sync.categories`.
+    Сводка: `1C_API_контракт_и_этапы.md`, `Принятые_решения_API_интеграция_1С.md`.
+paths:
+  /exchange:
+    post:
+      tags:
+      - Integration 1C
+      summary: Входящий вебхук 1С → платформа
+      description: |
+        Единая точка приёма (**спека тимлида**). Имя сценария — в поле `event`, данные — в `payload`
+        (массив или объект). Примеры payload — `входящие/incoming-hooks.md`.
+      operationId: postOneCExchange
+      security:
+      - oneCIntegrationHmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneCExchangeRequest'
+      responses:
+        '202':
+          description: Accepted — запрос принят, обработка асинхронно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeAcceptedResponse'
+        '400':
+          description: Некорректное тело
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неверный или отсутствующий HMAC / IP не в allowlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    oneCIntegrationHmac:
+      type: apiKey
+      in: header
+      name: X-Palizh-Signature
+      description: >
+        HMAC-SHA256 over the raw request body; format `t=<unix_ts>, v1=<hex>`. Replay window and secrets — `Интеграция_1С.md`
+        §4.3. IP allowlist on platform side.
+  schemas:
+    OneCExchangeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - event
+        - payload
+      properties:
+        event:
+          type: string
+          description: >
+            Код сценария. Зафиксировано (тимлид, MVP): `sync.products`, `sync.counterparties`, `sync.categories`.
+            Расширение перечня — по согласованию (статусы заказа, документы и т.д.).
+          enum:
+            - sync.products
+            - sync.counterparties
+            - sync.categories
+        payload:
+          description: |
+            Данные события: **массив** (типично для трёх сценариев выше) или **объект** — по согласованию.
+            Состав полей payload для `sync.*` — см. `входящие/incoming-hooks.md` (примеры товаров, контрагентов, категорий).
+          oneOf:
+            - type: array
+              items: {}
+            - type: object
+              additionalProperties: true
+    ExchangeAcceptedResponse:
+      type: object
+      additionalProperties: false
+      description: Минимальный ответ согласованной успешной приёмки; может быть расширен (jobId и т.д.).
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+          example: true
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ValidationErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      - errors
+      properties:
+        code:
+          type: string
+          enum:
+          - validation_error
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
