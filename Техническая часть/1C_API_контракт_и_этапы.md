@@ -5,7 +5,7 @@
 | Файл | Назначение |
 | ---- | ---------- |
 | [`1c-http-openapi.yaml`](1c-http-openapi.yaml) | HTTP-сервисы **на стороне 1С**, куда ходит **бэкенд платформы** (исходящие с платформы). **Канон (тимлид):** `POST /post_orders`, `GET /get_documents?type=&guid=`. |
-| [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml) | Публичный API **витрины и ЛК** (браузер/приложение ↔ бэкенд, JWT). |
+| [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml) | Публичный API **витрины и ЛК** (браузер/приложение ↔ бэкенд): продуктовый контракт, часто Bearer. Фактический контракт стенда — см. [`public-http-openapi.yaml`](public-http-openapi.yaml) (**канон GitLab** `docs/`); реализация — **Laravel Sanctum**, см. [`OpenAPI_индекс.md`](OpenAPI_индекс.md). |
 | [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) | **Входящие** вызовы **от 1С** на платформу: **единый** `POST /exchange` (`event` + `payload`), HMAC. См. [`Принятые_решения_API_интеграция_1С.md`](Принятые_решения_API_интеграция_1С.md). |
 | [`openapi_mvp_merged.yaml`](openapi_mvp_merged.yaml) | Объединение клиент + 1С inbound (генерация; для инструментов, которым нужен один файл) — см. [`OpenAPI_индекс.md`](OpenAPI_индекс.md). |
 | [`openapi_mvp_полный_черновик.yaml`](openapi_mvp_полный_черновик.yaml) | Расширенный OpenAPI: претензии, админка, обучение, акт сверки — **post-MVP**; в сжатом MVP **не** дублируем. |

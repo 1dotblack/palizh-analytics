@@ -1,22 +1,9 @@
-# HTTP API на стороне 1С: вызовы с бэкенда платформы (публикации 1С).
-# Пути и схемы — по принятым решениям (спека тимлида, см. Принятые_решения_API_интеграция_1С.md).
-# Каталог/номенклатура на витрину приходит в платформу через POST /exchange (1С → платформу), не через этот файл.
 openapi: 3.0.3
 info:
-  title: 1C HTTP API
-  version: 0.2.0
-  description: |
-    Сервисы **1С**, которые вызывает **бэкенд платформы** (платформа → 1С).
-
-    Имена путей: **`POST /post_orders`**, **`GET /get_documents`** (query `type`, `guid`) — как в реализации публикации 1С (см. `входящие/1c-http-openapi.yaml`).
-
-    Входящий импорт на платформу: **`POST /exchange`** в `openapi_1c_inbound_mvp.yaml`.
-
-    Идентификаторы: варианты/номенклатура в заказе — `productVariantGuid` и т.д. Согласование с `openapi_client_mvp.yaml` — `Маппинг_API_1С.md`.
+  title: 1C - HTTP API
+  version: 0.1.0
 servers:
-  - url: /
   - url: http://palitra.udm.ru:8181/demo_2/hs/b2b/
-    description: Пример тестовой публикации (не прод-канон; см. `входящие/1c-http-openapi.yaml`)
 security:
   - basicAuth: []
 tags:
@@ -27,8 +14,6 @@ tags:
 paths:
   /post_orders:
     post:
-      # Создание «Заказа клиента» в 1С; идемпотентность по externalGuid.
-      description: Создать заказ в 1С. Тело — `OrderCreateRequest`.
       operationId: createOrder
       tags:
         - Orders
@@ -63,8 +48,6 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /get_documents:
     get:
-      # Выдача файла документа (JSON + base64). Параметры type/guid — как в 1С.
-      description: Получить метаданные и содержимое документа (base64).
       operationId: downloadDocument
       tags:
         - Documents
@@ -97,13 +80,9 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
-    # Зачем: отсечь неавторизованные запросы к публикациям 1С; учётка на стороне заказчика; при необходимости + белый список IP.
     basicAuth:
       type: http
       scheme: basic
-      description: >
-        Аутентификация HTTP-сервиса 1С. Платформа предъявляет логин/пароль при вызове 1С.
-        Не путать с HMAC на входе 1С → платформу (`openapi_1c_inbound_mvp.yaml`).
   responses:
     UnauthorizedError:
       description: Unauthorized
@@ -139,10 +118,11 @@ components:
           type: number
           description: Сумма.
           example: 1290.5
+
     OrderCreateRequest:
       type: object
       title: Создание заказа
-      description: Запрос на создание заказа в 1С. externalGuid — связь с заказом на платформе и идемпотентность.
+      description: Запрос на создание заказа в 1С. externalGuid используется для связывания с заказом на платформе и для идемпотентности.
       required:
         - externalGuid
         - counterpartyGuid
@@ -167,11 +147,13 @@ components:
           type: string
           nullable: true
           description: Комментарий к заказу.
+          example: Позвонить за час до доставки
         items:
           type: array
           minItems: 1
           items:
             $ref: '#/components/schemas/OrderCreateItem'
+
     OrderCreateItem:
       type: object
       title: Позиция заказа
@@ -183,9 +165,12 @@ components:
           type: string
           format: uuid
           description: GUID варианта товара в 1С.
+          example: 5d3a9d5b-0b2f-4e9c-9f1f-0d3b2a1c9e77
         quantity:
           type: integer
           minimum: 1
+          description: Количество.
+          example: 3
         priceBase:
           allOf:
             - $ref: '#/components/schemas/Money'
@@ -196,6 +181,7 @@ components:
             - $ref: '#/components/schemas/Money'
           nullable: true
           description: Финальная (после скидок) цена за единицу для сверки.
+
     OrderCreateResponse:
       type: object
       title: Результат создания заказа
@@ -206,6 +192,7 @@ components:
           type: string
           format: uuid
           description: GUID созданного заказа в 1С.
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
     DocumentDownloadResponse:
       type: object
       title: Скачивание документа
@@ -216,12 +203,15 @@ components:
       properties:
         fileName:
           type: string
+          example: invoice_123.pdf
         contentType:
           type: string
+          example: application/pdf
         dataBase64:
           type: string
           format: byte
           description: Содержимое файла в base64.
+          example: JVBERi0xLjQK
     ErrorResponse:
       type: object
       title: Ошибка
@@ -230,6 +220,8 @@ components:
       properties:
         message:
           type: string
+          example: Unauthorized
         code:
           type: string
           nullable: true
+          example: AUTH_REQUIRED

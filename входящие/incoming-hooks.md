@@ -1,6 +1,4 @@
-# Платформа — входящие вебхуки (1С → Платформа)
-
-> **Канон OpenAPI:** [`Техническая часть/openapi_1c_inbound_mvp.yaml`](../Техническая%20часть/openapi_1c_inbound_mvp.yaml) · **принятые решения:** [`Техническая часть/Принятые_решения_API_интеграция_1С.md`](../Техническая%20часть/Принятые_решения_API_интеграция_1С.md)
+# Платформа - входящие вебхуки (1С -> Платформа)
 
 ## Endpoint
 
@@ -148,13 +146,14 @@ Payload: массив категорий.
   "payload": [
     {
       "guid": "8b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1a",
-      "parentGuid": null,
+      "parentguid": null,
       "name": "Клеи и герметики",
-      "catalogs": ["retail", "wholesale"]
+      "catalogs": ["retail", "wholesale"],
+      "counterparties": "6f9619ff-8b86-d011-b42d-00c04fc964ff"
     },
     {
       "guid": "9b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1b",
-      "parentGuid": "8b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1a",
+      "parentguid": "8b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1a",
       "name": "Герметики",
       "catalogs": ["retail"]
     }
