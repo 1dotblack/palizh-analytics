@@ -10,7 +10,7 @@
 - карточки товара;
 - поисковой выдачи в каталоге.
 
-**Импорт каталога из 1С на платформу** (full/delta, server-to-server) — в [`openapi_mvp_integration_1c.md`](openapi_mvp_integration_1c.md) и **`POST /exchange`** в [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) (`event`: `sync.products`, `sync.categories`, `sync.counterparties`). Расширенные post-MVP сценарии по витрине/каталогу — в [`openapi_mvp_полный_черновик.yaml`](openapi_mvp_полный_черновик.yaml), если понадобятся отдельно от MVP. Публичные `GET` каталога — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml); см. [`OpenAPI_индекс.md`](OpenAPI_индекс.md).
+**Импорт каталога из 1С на платформу** (full/delta, server-to-server) — в [`openapi_mvp_integration_1c.md`](openapi_mvp_integration_1c.md) и **`POST /exchange`** в [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) (`event`: `sync.products`, `sync.categories`, `sync.counterparties`). Расширенные post-MVP сценарии по витрине/каталогу — в [`openapi_mvp_post_mvp.yaml`](openapi_mvp_post_mvp.yaml), если понадобятся отдельно от MVP. Публичные `GET` каталога — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml); см. [`OpenAPI_индекс.md`](OpenAPI_индекс.md).
 
 ---
 

@@ -1,12 +1,12 @@
 # OpenAPI: интеграция 1С → платформа
 
-Контракт в YAML: [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml). **Принятые решения** (тимлид): [`Принятые_решения_API_интеграция_1С.md`](Принятые_решения_API_интеграция_1С.md). Черновик с примерами JSON: [`входящие/incoming-hooks.md`](../входящие/incoming-hooks.md).
+Контракт в YAML: [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml). **Принятые решения** (тимлид): [`Принятые_решения_API_интеграция_1С.md`](Принятые_решения_API_интеграция_1С.md). Примеры JSON: [`входящие/incoming-hooks.md`](../входящие/incoming-hooks.md).
 
 Публичные `GET` каталога, корзина, заказы — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml), пояснения в [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md). **Сводка методов и этапов** — [`1C_API_контракт_и_этапы.md`](1C_API_контракт_и_этапы.md). См. [`OpenAPI_индекс.md`](OpenAPI_индекс.md).
 
-**Вызовы бэкенда к HTTP 1С** (заказ, документ) — [`1c-http-openapi.yaml`](1c-http-openapi.yaml), то же в черновике: [`входящие/1c-http-openapi.yaml`](../входящие/1c-http-openapi.yaml).
+**Вызовы бэкенда к HTTP 1С** (заказ, документ) — [`1c-http-openapi.yaml`](1c-http-openapi.yaml), то же содержание: [`входящие/1c-http-openapi.yaml`](../входящие/1c-http-openapi.yaml).
 
-**Обучение** с 1С **не** интегрируется; программы/заявки — в [`openapi_mvp_полный_черновик.yaml`](openapi_mvp_полный_черновик.yaml) (тег `Training`), **не** в `openapi_client_mvp.yaml`.
+**Обучение** с 1С **не** интегрируется; программы/заявки — в [`openapi_mvp_post_mvp.yaml`](openapi_mvp_post_mvp.yaml) (тег `Training`), **не** в `openapi_client_mvp.yaml`.
 
 ---
 
