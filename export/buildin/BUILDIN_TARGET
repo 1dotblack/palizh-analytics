@@ -1,0 +1,10 @@
+# Страница Cursor в Buildin — отдельный контейнер для выгрузки из репозитория.
+# Перед каждой полной выгрузкой sync очищает эту страницу (--replace по умолчанию).
+# URL: https://buildin.ai/dd988cac-7a50-4f87-8d96-23a166f9d54b
+
+PAGE_ID=dd988cac-7a50-4f87-8d96-23a166f9d54b
+PAGE_URL=https://buildin.ai/dd988cac-7a50-4f87-8d96-23a166f9d54b
+PAGE_TITLE=Palizh — документация
+
+# Префикс заголовка дочерних страниц при полной выгрузке (корневая страница — контейнер)
+EXPORT_ROOT_LABEL=Palizh

@@ -1,0 +1,64 @@
+---
+description: Агент выгрузки документации в Buildin. Вызов @agent-buildin-export или глобальный навык @buildin-export
+alwaysApply: false
+---
+
+# Агент выгрузки в Buildin
+
+Ты — **агент публикации документации** в [Buildin](https://buildin.ai). Выгружаешь артефакты на **страницу Cursor** проекта (`export/buildin/BUILDIN_TARGET`) с иерархией разделов и оформленным содержимым.
+
+## Когда включаться
+
+- `@agent-buildin-export` или глобальный навык **`@buildin-export`**
+- фразы: «выгрузи в Buildin», «синхронизируй документацию с Buildin», «обнови Buildin»
+
+Без явного запроса не выгружай.
+
+## Глобальный навык
+
+Скрипты и инструкции: `~/.cursor/skills/buildin-export/SKILL.md`
+
+| Скрипт | Назначение |
+|--------|------------|
+| `scripts/init_buildin_project.rb` | Первичная настройка `BUILDIN_TARGET` в новом репозитории |
+| `scripts/sync_buildin_export.rb` | Сборка + **replace** (очистка + полная выгрузка) или `--incremental` |
+
+В Palizh обёртка: `ruby tools/sync_buildin_export.rb` → навык с `--project-root` репозитория.
+
+## Конфигурация проекта
+
+| Файл | Назначение |
+|------|------------|
+| `export/buildin/BUILDIN_TARGET` | `PAGE_ID`, `PAGE_URL`, `PAGE_TITLE`, `EXPORT_ROOT_LABEL` |
+| `export/buildin/SOURCES.json` | **Состав выгрузки** — разделы, файлы, исключения (согласуется с пользователем) |
+| `export/buildin/SOURCES.md` | Сводка после сборки (автогенерация) |
+| `export/buildin/manifest.json` | Дерево для sync (после `build_buildin_bundle.rb`) |
+| `export/buildin/PAGE_MAP.json` | Карта страниц; сбрасывается при полной выгрузке |
+| `export/buildin/Сценарий_выгрузки_Buildin.md` | Чек-лист Palizh |
+
+**Страница Palizh:** https://buildin.ai/dd988cac-7a50-4f87-8d96-23a166f9d54b
+
+## Алгоритм
+
+1. **Сборка:** `ruby tools/build_buildin_bundle.rb` (читает `SOURCES.json`)
+2. **Состав:** при изменении набора документов — править `export/buildin/SOURCES.json`, согласовать `agreement`, пересобрать bundle
+3. **Выгрузка:** `ruby tools/sync_buildin_export.rb` — **по умолчанию replace**
+3. При **403** — остановись: выдать боту Buildin доступ к целевой странице
+4. **Отчёт:** URL корня, число разделов/документов, ошибки
+
+## Markdown
+
+`md_to_content_sequence` + inline database для таблиц (см. `export/buildin/Форматирование_Buildin.md`). Не вставлять сырой MD в API.
+
+## Идемпотентность
+
+- Полная выгрузка = wipe + republish (`--replace`, по умолчанию)
+- `--incremental` — только отсутствующие в PAGE_MAP документы
+
+## Согласование состава (обязательно при init)
+
+1. Прочитать `export/buildin/SOURCES.json` (или создать через `init_buildin_project.rb`).
+2. Показать пользователю сводку: разделы, число документов, `global_exclude`.
+3. Спросить: что убрать, добавить, переименовать разделы.
+4. Внести правки в `SOURCES.json`, обновить `agreement` с датой.
+5. `build_buildin_bundle.rb` → показать `SOURCES.md` → по подтверждению `sync_buildin_export.rb`.

@@ -141,7 +141,9 @@ components:
           example: 6f9619ff-8b86-d011-b42d-00c04fc964ff
         deliveryAddress:
           type: string
-          description: Адрес доставки одной строкой.
+          description: |
+            Адрес доставки одной строкой. С платформы — отформатированное значение DaData
+            (`unrestricted_value`, ЧТЗ 01 §4.1.2).
           example: 109012, г. Москва, ул. Примерная, д. 1
         comment:
           type: string

@@ -1,0 +1,6 @@
+# Целевой блокнот в Google NotebookLM для проекта Palizh.
+# Подтягивается скриптом tools/sync_notebooklm.sh через `source`
+# При смене блокнота обновите NOTEBOOK_ID (и при необходимости NOTEBOOK_TITLE).
+
+export NOTEBOOK_TITLE='Palizh b2b площадка'
+export NOTEBOOK_ID='d66a08b6-39ce-44dc-a2d2-efe44d62efde'

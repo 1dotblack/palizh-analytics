@@ -4,7 +4,13 @@
 
 ## Канон источников (GitLab разработки)
 
-В репозитории **[gitlab.com/nutnet/palizh](https://gitlab.com/nutnet/palizh)** каталог **`docs/`** — первоисточник по соответствующим артефактам. После `git fetch gitlab` копии в этом репозитории аналитики должны совпадать с:
+В репозитории **[gitlab.com/nutnet/palizh](https://gitlab.com/nutnet/palizh)** каталог **`docs/`** — первоисточник по соответствующим артефактам.
+
+**Последняя подтяжка в аналитику:** `gitlab/main` **`23cbd8e`** — `public-http-openapi.yaml` (**3330** строк): `GET /products/filters`, `attr` / `attrRange`. **`incoming-hooks.md`** приведён к канону GitLab (**2026-06-02**): имена `event` и полей реализованного обмена — как на стенде (`sync.product-types`, `sync.stocks`, `typeGuid`, `attributes[]` и т.д.). `docs/1c-http-openapi.yaml` — без изменений.
+
+**Предыдущая подтяжка:** `b86d571` — `discountedAmount`, `shop_working_hours`, скидки в `sync.counterparties`. Ранее: `4f17e9b`, корзина/заказы (`f2824d9`).
+
+После `git fetch gitlab` копии в этом репозитории аналитики должны совпадать с:
 
 - `docs/public-http-openapi.yaml` ↔ `Техническая часть/public-http-openapi.yaml`
 - `docs/1c-http-openapi.yaml` ↔ `Техническая часть/1c-http-openapi.yaml` и **`входящие/1c-http-openapi.yaml`** (идентичные файлы)
@@ -16,14 +22,14 @@
 
 | Файл | Назначение | Кто потребляет |
 | ---- | ---------- | -------------- |
-| [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml) | **Продуктовый контракт** витрины и ЛК (онбординг, auth, профиль, каталог, корзина, заказы, документы и т.д.) — живёт в репозитории аналитики; описывает целевой REST и **Bearer** там, где договорён токен. **Не** смешивать с каноном стенда: выравнивать относительно [`public-http-openapi.yaml`](public-http-openapi.yaml) по мере созревания бэкенда. | Продукт, фронт, мобилка — целевая модель API |
-| [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) | Формальное OpenAPI для **`POST /exchange`** (HMAC, событие + payload). Согласовать с GitLab‑модулем `Exchange` и с **`входящие/incoming-hooks.md`**. При расхождениях с кодом править здесь только после решения архитектуры (или актуализировать код в GitLab). | Разработка 1С, контрактные тесты inbound |
+| [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml) | **Продуктовый черновик** витрины и ЛК (Bearer/JWT, `/catalogs/{code}/…`). **Для MVP и стенда не канон** — ориентир **`public-http-openapi.yaml`**. Файл сохранён для post-MVP и продуктовых обсуждений; см. § «Расхождение» ниже. | Продукт (целевая модель), **не** текущая разработка фронта |
+| [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) | Формальное OpenAPI для **`POST /exchange`** (HMAC, `event` + typed `payload` по событиям каталога). Согласовать с GitLab‑модулем `Exchange` и с **`входящие/incoming-hooks.md`**. | Разработка 1С, контрактные тесты inbound |
 | [`1c-http-openapi.yaml`](1c-http-openapi.yaml) | **Исходящие вызовы платформа → HTTP-сервисы 1С** (`POST /post_orders`, `GET /get_documents` и т.д.). **Basic** и сеть — на стороне заказчика; дубликат для удобства — см. также [`входящие/1c-http-openapi.yaml`](../входящие/1c-http-openapi.yaml). **Канон текста файла:** `gitlab/.../docs/1c-http-openapi.yaml`. | Бэкенд платформы, разработка 1С (публикации) |
 | [`public-http-openapi.yaml`](public-http-openapi.yaml) | **Контракт публичного HTTP API** для стенда/реализации (часто SPA + Laravel Sanctum: cookie, CSRF, см. описание операций и `servers.url`). **Канон текста файла:** `gitlab/.../docs/public-http-openapi.yaml`. | Фронт, контрактные тесты стенда, сверка с продуктовым [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml) |
 | [`openapi_mvp_merged.yaml`](openapi_mvp_merged.yaml) | **Объединение** клиент + 1С inbound (генерация скриптом). Для Redoc/Swagger UI, линтеров, которым удобен **один** YAML. **Не править вручную.** | Демо, CI, просмотр «всё в одном» |
 | [`openapi_mvp_post_mvp.yaml`](openapi_mvp_post_mvp.yaml) | Post-MVP расширения (претензии, админка, обучение и т.д.). | Планирование |
 
-**События `POST /exchange` (расшифровка payload):** [`входящие/incoming-hooks.md`](../входящие/incoming-hooks.md) — **канон текста:** `gitlab/.../docs/incoming-hooks.md`; примеры `sync.products`, `sync.counterparties`, `sync.categories` и др. Формальное OpenAPI входа — [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml).
+**События `POST /exchange` (расшифровка payload):** [`входящие/incoming-hooks.md`](../входящие/incoming-hooks.md) — **канон текста:** `gitlab/.../docs/incoming-hooks.md`. **Модель каталога (канон GitLab / стенд, 2026-06-02):** [`Модель_данных_каталог_1С_обмен.md`](Модель_данных_каталог_1С_обмен.md) — `sync.product-attributes`, `sync.product-types`, `sync.product-type-characteristics`, `sync.products`, `sync.stocks`, `sync.prices`, `sync.categories`, `sync.counterparties`. Формальное OpenAPI — [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml) (**v0.4.0**): typed-схемы `payload` по событиям каталога (discriminator `event`); заказы/документы — по мере готовности 1С (#18).
 
 **Скрипты** (каталог `Техническая часть/tools/`):
 
@@ -31,6 +37,27 @@
 - `split_openapi_client_and_1c.rb` — одноразовая нарезка; источник по умолчанию — архивный монолит, если снова понадобится регенерировать куски из старой одной спеки.
 
 Скрипт **не** включает `public-http-openapi.yaml` и `1c-http-openapi.yaml` — они синхронизируются **только с GitLab `docs/`**.
+
+### Расхождение `openapi_client_mvp.yaml` ↔ `public-http-openapi.yaml` (сверка 2026-06-26)
+
+**Решение (2026-06-26):** для MVP **канон только `public-http-openapi.yaml`**. `openapi_client_mvp.yaml` — **устаревший для стенда** продуктовый черновик; не править под каждую подтяжку GitLab без отдельного решения.
+
+Маршруты ниже есть в каноне стенда **`public-http-openapi.yaml`** (GitLab `docs/`), в **`openapi_client_mvp.yaml`** **не описаны** или **другая модель**:
+
+| Метод и путь | В `public-http-openapi.yaml` | В `openapi_client_mvp.yaml` |
+|--------------|------------------------------|----------------------------|
+| `GET /banners` | да | нет |
+| `GET /promotions` | да | нет |
+| `GET /promotions/{slug}` | да | нет |
+| `PATCH /me` | да | нет |
+| `POST /me/change-password` | да | нет |
+| `GET /cart`, `DELETE /cart`, `PUT /cart/items` | да (2026-06-11) | нет |
+| `GET /products/filters`, query `attr` / `attrRange` на `GET /products` | да (GitLab `23cbd8e`) | нет |
+| `GET /search/products` | да (**2026-06-02**, аналитика) | да (черновик; синхронизировать) |
+| `GET /claim`, `POST /claim` | да (канон стенда) | нет (`/claims` только в post-MVP yaml) |
+| `GET /orders`, `GET /orders/{id}`, `POST /orders/{id}/repeat` | да (2026-06-11) | нет |
+| `CartItem`: `packagingMode`, `fullBoxesCount`, `remainderQuantity`, … | да (**2026-06-02**) | да (`CartItem` в client) |
+| Схемы `ProductAttributes`, `unitsPerBox` в карточке/листинге | да (2026-06-11) | нет / частично |
 
 **Канон изменений:**
 

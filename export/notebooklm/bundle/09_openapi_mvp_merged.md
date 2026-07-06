@@ -1,0 +1,2945 @@
+# OpenAPI MVP merged (клиент + 1С inbound)
+
+Исходный YAML: **`09_openapi_mvp_merged.yaml`**.
+
+```yaml
+# Сгенерировано: ruby tools/merge_openapi_mvp.rb — не править вручную; правьте openapi_client_mvp / openapi_1c_inbound
+---
+openapi: 3.1.0
+info:
+  title: Palizh MVP API — объединённый (клиент + 1С inbound)
+  version: 0.1.0
+  summary: 'Один файл для демо/лLint: = openapi_client_mvp.yaml + openapi_1c_inbound_mvp.yaml'
+  description: |
+    **Собрано** из `openapi_client_mvp.yaml` и `openapi_1c_inbound_mvp.yaml` (см. `OpenAPI_индекс.md`).
+    Канон для правок — **два** отдельных файла; этот — для инструментов, которым нужен один bundle.
+servers:
+- url: https://api.palizh.example/api/v1
+  description: Example production URL
+tags:
+- name: Public Onboarding
+- name: Auth
+  description: |
+    Вход, токен, сброс пароля, приглашения — **для пользователей** витрины и ЛК
+    (клиенты B2B). **Не** для интеграции 1С (её тег `Integration 1C` и HMAC).
+- name: Profile
+- name: Catalog
+- name: Cart
+- name: Orders
+- name: Documents
+- name: Integration 1C
+  description: |
+    Вызовы от 1С на API платформы (server-to-server). События каталога и справочников —
+    значения `event` каталога: `sync.product-attributes`, `sync.product-types`, `sync.product-type-characteristics`, `sync.products`, `sync.stocks`, `sync.prices`, `sync.categories`, `sync.counterparties` — см. `Модель_данных_каталог_1С_обмен.md`, `входящие/incoming-hooks.md`.
+    Сводка: `1C_API_контракт_и_этапы.md`, `Принятые_решения_API_интеграция_1С.md`.
+paths:
+  "/public/client-applications":
+    post:
+      tags:
+      - Public Onboarding
+      summary: Submit B2B client application
+      operationId: createClientApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ClientApplicationCreateRequest"
+      responses:
+        '201':
+          description: Client application created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ClientApplicationCreateResponse"
+        '409':
+          description: Duplicate active application or email conflict
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/auth/invitations/accept":
+    post:
+      tags:
+      - Auth
+      summary: Accept invitation and set initial password
+      operationId: acceptInvitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/InvitationAcceptRequest"
+      responses:
+        '200':
+          description: Invitation accepted, authenticated session created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AuthTokenResponse"
+        '400':
+          description: Invalid or expired invitation token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/auth/login":
+    post:
+      tags:
+      - Auth
+      summary: Login with email and password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+      responses:
+        '200':
+          description: Authenticated successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AuthTokenResponse"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: User exists but is not active for the platform
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/auth/refresh":
+    post:
+      tags:
+      - Auth
+      summary: Refresh access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RefreshTokenRequest"
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AuthTokenResponse"
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/auth/logout":
+    post:
+      tags:
+      - Auth
+      summary: Logout current session
+      operationId: logout
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LogoutRequest"
+      responses:
+        '204':
+          description: Logged out successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/auth/password/forgot":
+    post:
+      tags:
+      - Auth
+      summary: Request password reset
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        '200':
+          description: Password reset requested successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MessageResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/auth/password/reset":
+    post:
+      tags:
+      - Auth
+      summary: Reset password using reset token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ResetPasswordRequest"
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MessageResponse"
+        '400':
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/me":
+    get:
+      tags:
+      - Profile
+      summary: Get current user profile
+      operationId: getCurrentUser
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MeResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    patch:
+      tags:
+      - Profile
+      summary: Update current user profile
+      operationId: updateCurrentUser
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/UpdateMeRequest"
+      responses:
+        '200':
+          description: Updated current user profile
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MeResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/me/password":
+    patch:
+      tags:
+      - Profile
+      summary: Change current user password
+      operationId: changeCurrentUserPassword
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ChangePasswordRequest"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MessageResponse"
+        '401':
+          description: Unauthorized or invalid current password
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/me/company":
+    get:
+      tags:
+      - Profile
+      summary: Get current user's company summary
+      operationId: getCurrentUserCompany
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Company summary for current user
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompanySummaryResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/me/company/users":
+    get:
+      tags:
+      - Profile
+      summary: List users of current company
+      operationId: listMyCompanyUsers
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Company user list
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompanyUserListResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+      - Profile
+      summary: Invite company user by email (master account)
+      operationId: createCompanyUserInvite
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CompanyUserInviteRequest"
+      responses:
+        '201':
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompanyUserResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: Forbidden (not master account)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/me/company/users/{userId}/resend-invite":
+    post:
+      tags:
+      - Profile
+      summary: Resend invitation email for company user
+      operationId: resendCompanyUserInvite
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Invitation resent
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MessageResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/me/company/users/{userId}/status":
+    patch:
+      tags:
+      - Profile
+      summary: Update company user status (enable/disable)
+      operationId: updateCompanyUserStatus
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CompanyUserStatusUpdateRequest"
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CompanyUserResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/catalogs":
+    get:
+      tags:
+      - Catalog
+      summary: Get available catalogs
+      operationId: getCatalogs
+      security:
+      - {}
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Available catalogs
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CatalogListResponse"
+  "/catalogs/{catalogCode}/categories":
+    get:
+      tags:
+      - Catalog
+      summary: Get category tree for catalog
+      operationId: getCatalogCategories
+      security:
+      - {}
+      - bearerAuth: []
+      parameters:
+      - name: catalogCode
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Category tree for catalog
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CategoryTreeResponse"
+        '404':
+          description: Catalog not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/catalogs/{catalogCode}/products":
+    get:
+      tags:
+      - Catalog
+      summary: Get product listing for catalog
+      description: >
+        List is **scoped to the current viewer**: guests and B2B users never see rows whose `exclusiveCounterpartyGuid` does
+        not match their company (see `ProductCardSummary`).
+      operationId: getCatalogProducts
+      security:
+      - {}
+      - bearerAuth: []
+      parameters:
+      - name: catalogCode
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: perPage
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 24
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - relevance
+          - name_asc
+          - name_desc
+          - updated_desc
+      - name: includeArchived
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Product listing
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ProductListResponse"
+        '404':
+          description: Catalog not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/products/{productId}":
+    get:
+      tags:
+      - Catalog
+      summary: Get product details
+      description: >
+        `404` if the product does not exist **or** is not visible to the caller (e.g. `exclusiveCounterpartyGuid` set for
+        another company, or guest requesting a counterparty-only product).
+      operationId: getProduct
+      security:
+      - {}
+      - bearerAuth: []
+      parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ProductDetailResponse"
+        '404':
+          description: Product not found or not visible to this viewer (e.g. exclusive to another counterparty)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/search/products":
+    get:
+      tags:
+      - Catalog
+      summary: Search products
+      description: >
+        Поиск по каталогу на платформе. Поля и ранжирование — ЧТЗ 11 §5.5–5.6. Same visibility rules as catalog listing: `exclusiveCounterpartyGuid`
+        is evaluated on **base nomenclature** (aligned with `Product` in `1c-http-openapi.yaml`). Search results **never**
+        include products that are not visible to the current viewer (guest / other B2B).
+      operationId: searchProducts
+      security:
+      - {}
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description: >
+          Поисковый запрос. UI рекомендует не вызывать API при длине &lt; 2 символов после trim. Нормализация на backend —
+          trim, схлопывание пробелов. См. ЧТЗ 11 §5.4, §5.7.
+      - name: catalogCode
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: perPage
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 24
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SearchProductsResponse"
+  "/cart":
+    get:
+      tags:
+      - Cart
+      summary: Get current cart
+      operationId: getCart
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Current cart
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CartResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/cart/items/{productId}":
+    put:
+      tags:
+      - Cart
+      summary: Add or update cart item
+      operationId: upsertCartItem
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CartItemUpsertRequest"
+      responses:
+        '200':
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CartResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: Product not found, or not sold to this counterparty (hidden exclusive product)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: 'Product is restricted to another counterparty (`exclusiveCounterpartyGuid` mismatch); cannot add to
+            this company cart.
+
+'
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+    delete:
+      tags:
+      - Cart
+      summary: Remove item from cart
+      operationId: deleteCartItem
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Cart updated after item removal
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CartResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/cart/clear":
+    post:
+      tags:
+      - Cart
+      summary: Clear current cart
+      operationId: clearCart
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CartResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/checkout/preview":
+    post:
+      tags:
+      - Cart
+      summary: Get checkout preview
+      operationId: previewCheckout
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CheckoutPreviewRequest"
+      responses:
+        '200':
+          description: Checkout preview
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CheckoutPreviewResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: Cart contains a line restricted to another counterparty
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+  "/orders":
+    post:
+      tags:
+      - Orders
+      summary: Create order from current cart
+      operationId: createOrder
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OrderCreateRequest"
+      responses:
+        '201':
+          description: >
+            Order persisted on platform; response may show integrationSyncState `pending` until 1C confirms. See order_lifecycle_contract.md
+            §5.2.
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDetailResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: Cart contains a line restricted to another counterparty
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+    get:
+      tags:
+      - Orders
+      summary: Get current user's orders
+      operationId: getOrders
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: perPage
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: status
+        in: query
+        required: false
+        schema:
+          "$ref": "#/components/schemas/OrderStatus"
+      responses:
+        '200':
+          description: Order list
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderListResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/orders/{orderId}":
+    get:
+      tags:
+      - Orders
+      summary: Get order details
+      operationId: getOrder
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDetailResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/orders/{orderId}/repeat":
+    post:
+      tags:
+      - Orders
+      summary: Repeat order by adding available positions to cart
+      operationId: repeatOrder
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Repeat order processed
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/RepeatOrderResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/orders/{orderId}/documents":
+    get:
+      tags:
+      - Documents
+      summary: Get documents for an order
+      operationId: getOrderDocuments
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Order documents
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/OrderDocumentListResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/orders/{orderId}/documents/{documentType}/request":
+    post:
+      tags:
+      - Documents
+      summary: Request document from 1С
+      operationId: requestOrderDocument
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: documentType
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '202':
+          description: Document request accepted
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/DocumentRequestResponse"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: Order or document type not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/exchange":
+    post:
+      tags:
+      - Integration 1C
+      summary: Входящий вебхук 1С → платформа
+      description: |
+        Единая точка приёма (**спека тимлида**). Имя сценария — в поле `event`, данные — в `payload`
+        (массив или объект). Примеры payload — `входящие/incoming-hooks.md`.
+      operationId: postOneCExchange
+      security:
+      - oneCIntegrationHmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OneCExchangeRequest"
+      responses:
+        '202':
+          description: Accepted — запрос принят, обработка асинхронно
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ExchangeAcceptedResponse"
+        '400':
+          description: Некорректное тело
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '401':
+          description: Неверный или отсутствующий HMAC / IP не в allowlist
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ValidationErrorResponse"
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    oneCIntegrationHmac:
+      type: apiKey
+      in: header
+      name: X-Palizh-Signature
+      description: >
+        HMAC-SHA256 over the raw request body; format `t=<unix_ts>, v1=<hex>`. Replay window and secrets — `Интеграция_1С.md`
+        §4.3. IP allowlist on platform side.
+  schemas:
+    ClientApplicationCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - companyName
+      - inn
+      - kpp
+      - contactName
+      - email
+      - phone
+      properties:
+        companyName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        inn:
+          type: string
+          minLength: 10
+          maxLength: 12
+        kpp:
+          type: string
+          minLength: 9
+          maxLength: 9
+        contactName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          minLength: 6
+          maxLength: 32
+        comment:
+          type: string
+          maxLength: 2000
+    ClientApplicationCreateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - applicationGuid
+      - status
+      - message
+      properties:
+        applicationGuid:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - submitted
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ValidationErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      - errors
+      properties:
+        code:
+          type: string
+          enum:
+          - validation_error
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    InvitationAcceptRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - token
+      - password
+      - passwordConfirmation
+      properties:
+        token:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 8
+          maxLength: 255
+        passwordConfirmation:
+          type: string
+          minLength: 8
+          maxLength: 255
+    AuthTokenResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - tokenType
+      - accessToken
+      - refreshToken
+      - expiresIn
+      properties:
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          minimum: 1
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 255
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+    LogoutRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+    ForgotPasswordRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      properties:
+        email:
+          type: string
+          format: email
+    MessageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - message
+      properties:
+        message:
+          type: string
+    ResetPasswordRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - token
+      - password
+      - passwordConfirmation
+      properties:
+        token:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 8
+          maxLength: 255
+        passwordConfirmation:
+          type: string
+          minLength: 8
+          maxLength: 255
+    MeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - email
+      - fullName
+      - phone
+      - role
+      - companyId
+      - companyName
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum:
+          - master
+          - purchaser
+          - accountant
+        companyId:
+          type: string
+          format: uuid
+        companyName:
+          type: string
+    UpdateMeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          minLength: 6
+          maxLength: 32
+    ChangePasswordRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - currentPassword
+      - newPassword
+      - newPasswordConfirmation
+      properties:
+        currentPassword:
+          type: string
+          minLength: 1
+          maxLength: 255
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 255
+        newPasswordConfirmation:
+          type: string
+          minLength: 8
+          maxLength: 255
+    CompanySummaryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - counterpartyGuid
+      - name
+      - inn
+      - kpp
+      - isActiveForPlatform
+      properties:
+        id:
+          type: string
+          format: uuid
+        counterpartyGuid:
+          type: string
+        name:
+          type: string
+        inn:
+          type: string
+        kpp:
+          type: string
+        legalAddress:
+          type: string
+        paymentTerms:
+          "$ref": "#/components/schemas/PaymentTerms"
+        isActiveForPlatform:
+          type: boolean
+    CompanyUserListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CompanyUser"
+    CompanyUserInviteRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - fullName
+      - email
+      - role
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        phone:
+          type:
+          - string
+          - 'null'
+          minLength: 6
+          maxLength: 32
+        role:
+          "$ref": "#/components/schemas/CompanyUserRole"
+    CompanyUserResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - user
+      properties:
+        user:
+          "$ref": "#/components/schemas/CompanyUser"
+    CompanyUserStatusUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          "$ref": "#/components/schemas/CompanyUserAccessStatus"
+    CatalogListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CatalogSummary"
+    CategoryTreeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - catalogCode
+      - items
+      properties:
+        catalogCode:
+          type: string
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CategoryNode"
+    ProductListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - meta
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProductCardSummary"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+    ProductDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - nomenclatureGuid
+      - sku
+      - name
+      - slug
+      - catalogs
+      - categories
+      - attributes
+      - images
+      - availability
+      - isArchived
+      - isAvailableForOrder
+      properties:
+        id:
+          type: string
+        nomenclatureGuid:
+          type: string
+        sku:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        brand:
+          type:
+          - string
+          - 'null'
+        catalogs:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CatalogSummary"
+        categories:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CategoryNode"
+        attributes:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProductAttribute"
+        images:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProductImage"
+        availability:
+          "$ref": "#/components/schemas/ProductAvailability"
+        isArchived:
+          type: boolean
+        isAvailableForOrder:
+          type: boolean
+        marketplaceUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        price:
+          oneOf:
+          - "$ref": "#/components/schemas/ProductPrice"
+          - type: 'null'
+        exclusiveCounterpartyGuid:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: >
+            Как в `ProductCardSummary` / `1c-http-openapi.yaml` `Product.exclusiveCounterpartyGuid` (базовая номенклатура,
+            одно значение).
+    SearchProductsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - query
+      - items
+      - meta
+      properties:
+        query:
+          type: string
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProductCardSummary"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+    CartResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - totals
+      - warnings
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CartItem"
+        totals:
+          "$ref": "#/components/schemas/CartTotals"
+        deliveryHint:
+          oneOf:
+          - "$ref": "#/components/schemas/DeliveryHint"
+          - type: 'null'
+        warnings:
+          type: array
+          items:
+            "$ref": "#/components/schemas/WarningMessage"
+    CartItemUpsertRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - quantity
+      properties:
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+    CheckoutPreviewRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - deliveryAddress
+      - contactName
+      - contactPhone
+      properties:
+        deliveryAddress:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: |
+            Адрес доставки одной строкой. Канон для нового ввода — `unrestricted_value`
+            из ответа DaData после выбора подсказки (ЧТЗ 01 §4.1.2). Для сохранённого
+            адреса — ранее сохранённая строка.
+        deliveryAddressFiasId:
+          type: string
+          format: uuid
+          description: |
+            Опционально. `data.fias_id` выбранной подсказки DaData; для проверки на бэке
+            и дедупликации в списке адресов.
+        contactName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        contactPhone:
+          type: string
+          minLength: 6
+          maxLength: 32
+        comment:
+          type: string
+          maxLength: 2000
+    CheckoutPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - totals
+      - paymentTerms
+      - warnings
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CartItem"
+        totals:
+          "$ref": "#/components/schemas/CartTotals"
+        paymentTerms:
+          "$ref": "#/components/schemas/PaymentTerms"
+        deliveryHint:
+          oneOf:
+          - "$ref": "#/components/schemas/DeliveryHint"
+          - type: 'null'
+        warnings:
+          type: array
+          items:
+            "$ref": "#/components/schemas/WarningMessage"
+    OrderCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - deliveryAddress
+      - contactName
+      - contactPhone
+      properties:
+        deliveryAddress:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: |
+            Адрес доставки одной строкой. Канон для нового ввода — `unrestricted_value`
+            из ответа DaData после выбора подсказки (ЧТЗ 01 §4.1.2). Для сохранённого
+            адреса — ранее сохранённая строка.
+        deliveryAddressFiasId:
+          type: string
+          format: uuid
+          description: |
+            Опционально. `data.fias_id` выбранной подсказки DaData; для проверки на бэке
+            и дедупликации в списке адресов.
+        contactName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        contactPhone:
+          type: string
+          minLength: 6
+          maxLength: 32
+        comment:
+          type: string
+          maxLength: 2000
+    OrderDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - order
+      - items
+      - totals
+      - payment
+      - delivery
+      - documents
+      - canRepeat
+      properties:
+        order:
+          "$ref": "#/components/schemas/OrderSummary"
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderItem"
+        totals:
+          "$ref": "#/components/schemas/CartTotals"
+        payment:
+          "$ref": "#/components/schemas/OrderPayment"
+        delivery:
+          "$ref": "#/components/schemas/OrderDeliveryDetails"
+        documents:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderDocumentLink"
+        canRepeat:
+          type: boolean
+    OrderStatus:
+      type: string
+      description: >
+        Six upper-level lifecycle phases mapped from 1C (see order_lifecycle_contract.md). Semantics match 1C only when integrationSyncState
+        is `synced` and oneCOrderGuid is set; otherwise the client must rely on integrationSyncState and onboarding copy,
+        not on status alone.
+      enum:
+      - processing
+      - in_production
+      - ready_for_picking
+      - ready_to_ship
+      - shipped
+      - completed
+    OrderListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - meta
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderSummary"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+    RepeatOrderResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - addedItems
+      - excludedItems
+      - cart
+      properties:
+        addedItems:
+          type: array
+          items:
+            "$ref": "#/components/schemas/RepeatOrderAddedItem"
+        excludedItems:
+          type: array
+          items:
+            "$ref": "#/components/schemas/RepeatOrderExcludedItem"
+        cart:
+          "$ref": "#/components/schemas/CartResponse"
+    OrderDocumentListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderDocumentMeta"
+    DocumentRequestResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - requestId
+      - message
+      properties:
+        requestId:
+          type: string
+        message:
+          type: string
+    PaymentTerms:
+      type: object
+      additionalProperties: false
+      properties:
+        paymentMode:
+          type: string
+          enum:
+          - prepayment
+          - postpayment
+        defermentDays:
+          type: integer
+          minimum: 0
+        creditLimit:
+          type: number
+        hasPostpayAccess:
+          type: boolean
+    CompanyUser:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - fullName
+      - email
+      - role
+      - status
+      - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type:
+          - string
+          - 'null'
+        role:
+          "$ref": "#/components/schemas/CompanyUserRole"
+        status:
+          "$ref": "#/components/schemas/CompanyUserAccessStatus"
+        createdAt:
+          type: string
+          format: date-time
+    CompanyUserRole:
+      type: string
+      enum:
+      - master
+      - purchaser
+      - accountant
+    CompanyUserAccessStatus:
+      type: string
+      enum:
+      - invited
+      - active
+      - disabled
+    CatalogSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - name
+      - isPublic
+      - sortOrder
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        isPublic:
+          type: boolean
+        sortOrder:
+          type: integer
+    CategoryNode:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - slug
+      - children
+      properties:
+        id:
+          type: string
+        parentId:
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+        slug:
+          type: string
+        children:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CategoryNode"
+    ProductCardSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - nomenclatureGuid
+      - sku
+      - name
+      - slug
+      - isArchived
+      - isAvailableForOrder
+      - availability
+      properties:
+        id:
+          type: string
+        nomenclatureGuid:
+          type: string
+        sku:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        brand:
+          type:
+          - string
+          - 'null'
+        imageUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        isArchived:
+          type: boolean
+        isAvailableForOrder:
+          type: boolean
+        availability:
+          "$ref": "#/components/schemas/ProductAvailability"
+        marketplaceUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        price:
+          oneOf:
+          - "$ref": "#/components/schemas/ProductPrice"
+          - type: 'null'
+        exclusiveCounterpartyGuid:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: >
+            Каноническое имя и семантика — как `Product.exclusiveCounterpartyGuid` в `1c-http-openapi.yaml`: **одно** значение
+            `GUID` или `null`; задаётся на **базовой** номенклатуре (не на варианте). `null` — общий каталог. При несовпадении
+            с B2B-сессией позиция **не** в листинге/поиске и `GET /products/{id}` → 404.
+    PaginationMeta:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - perPage
+      - total
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        perPage:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    ProductAttribute:
+      type: object
+      additionalProperties: false
+      description: >
+        Attribute value on a product in catalog API responses: stable `code`, human-readable `name`, and `value`. No separate
+        GET /product-attributes is required for MVP if these fields are always present (согласование 2026-04-21). Optional
+        `valueType` documents the kind of value for UI/analytics.
+      required:
+      - code
+      - name
+      - value
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        valueType:
+          type:
+          - string
+          - 'null'
+          description: Optional hint (string, number, boolean, enum, …).
+        value:
+          type:
+          - string
+          - number
+          - integer
+          - boolean
+          - 'null'
+    ProductImage:
+      type: object
+      additionalProperties: false
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+        alt:
+          type:
+          - string
+          - 'null'
+        isPrimary:
+          type: boolean
+    ProductAvailability:
+      type: object
+      additionalProperties: false
+      required:
+      - inStock
+      - isAvailableForOrder
+      properties:
+        inStock:
+          type: boolean
+        stockQty:
+          type:
+          - number
+          - 'null'
+        productionLeadTime:
+          type:
+          - string
+          - 'null'
+        isAvailableForOrder:
+          type: boolean
+    ProductPrice:
+      type: object
+      additionalProperties: false
+      description: |
+        Цены позиции для авторизованного B2B-клиента. `amount` — за штуку; `amountPerBox` — за коробку.
+        Корзинный пересчёт (смешанная кратность) — `CartItem`, ЧТЗ 01 §4.2.4.
+        Синхронизировать с `public-http-openapi.yaml` (`ProductPrice`).
+      required:
+      - currency
+      - amount
+      properties:
+        currency:
+          type: string
+        amount:
+          type: number
+          description: Цена за штуку (розничный контур).
+        amountPerBox:
+          type:
+          - number
+          - 'null'
+          description: Цена за коробку целиком.
+        discountedAmount:
+          type:
+          - number
+          - 'null'
+          description: amount с персональной скидкой на розницу.
+        discountedAmountPerBox:
+          type:
+          - number
+          - 'null'
+          description: amountPerBox с персональной скидкой на розницу.
+        baseAmount:
+          type:
+          - number
+          - 'null'
+        discountPercent:
+          type:
+          - number
+          - 'null'
+        priceTypeCode:
+          type:
+          - string
+          - 'null'
+    CartItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productId
+      - product
+      - quantity
+      - unit
+      - unitPrice
+      - lineTotal
+      - availability
+      properties:
+        productId:
+          type: string
+        product:
+          "$ref": "#/components/schemas/ProductCardSummary"
+        quantity:
+          type: number
+        unit:
+          type: string
+          description: Unit of measure from 1C (e.g. шт, кг, л)
+          example: шт
+        unitPrice:
+          type: number
+          description: |
+            Средняя цена за unit = round(lineTotal / quantity, 2). Для UI;
+            quantity × unitPrice может отличаться от lineTotal на 1 коп.
+        lineTotal:
+          type: number
+          description: |
+            Сумма строки = round(boxPart,2) + round(piecePart,2), где
+            boxPart = fullBoxesCount × pricePerBox, piecePart = remainderQuantity × pricePerPiece.
+            RUB, 2 знака, round half up. Авторитетное поле для итога строки.
+        packagingMode:
+          type: string
+          enum:
+          - multiple
+          - mixed
+          - non_multiple
+          - not_applicable
+          description: |
+            multiple — quantity кратно unitsPerBox; mixed — есть целые коробки и остаток штук;
+            non_multiple — меньше одной полной упаковки; not_applicable — unitsPerBox ≤ 1.
+        unitsPerBox:
+          type:
+          - integer
+          - 'null'
+          description: Кратность упаковки из 1С (НаборУпаковок).
+        fullBoxesCount:
+          type: integer
+          description: Число полных упаковок в строке (floor(quantity / unitsPerBox)).
+        remainderQuantity:
+          type: number
+          description: Штуки вне полных упаковок (quantity − fullBoxesCount × unitsPerBox).
+        referenceUnitPricePerBox:
+          type:
+          - number
+          - 'null'
+          description: Цена за коробку (discountedAmountPerBox или amountPerBox) — для UI.
+        referenceUnitPricePerPiece:
+          type:
+          - number
+          - 'null'
+          description: Цена за штуку (discountedAmount или amount) — для UI.
+        referenceUnitPriceMultiple:
+          type:
+          - number
+          - 'null'
+          description: Опционально — pricePerBox / unitsPerBox (эффективная цена шт в коробке).
+        referenceUnitPriceNonMultiple:
+          type:
+          - number
+          - 'null'
+          description: Опционально — синоним referenceUnitPricePerPiece для подсказок.
+        availability:
+          "$ref": "#/components/schemas/ProductAvailability"
+    CartTotals:
+      type: object
+      additionalProperties: false
+      required:
+      - subtotal
+      - total
+      - vatAmount
+      - itemsCount
+      properties:
+        subtotal:
+          type: number
+          description: Sum of all line totals before discount
+        discountTotal:
+          type:
+          - number
+          - 'null'
+          description: Total discount amount (null if no discount)
+        vatAmount:
+          type: number
+          description: VAT amount included in total (НДС)
+        total:
+          type: number
+          description: Final total (includes VAT)
+        itemsCount:
+          type: integer
+          description: Number of unique line items (позиций)
+    DeliveryHint:
+      type: object
+      additionalProperties: false
+      properties:
+        freeDeliveryThreshold:
+          type: number
+        amountToFreeDelivery:
+          type:
+          - number
+          - 'null'
+        message:
+          type:
+          - string
+          - 'null'
+    WarningMessage:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    OrderSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - number
+      - status
+      - integrationSyncState
+      - paymentStatus
+      - totalAmount
+      - createdAt
+      properties:
+        id:
+          type: string
+        oneCOrderGuid:
+          type:
+          - string
+          - 'null'
+          description: Set when 1C has accepted the order; null while integrationSyncState is not synced.
+        number:
+          type: string
+        status:
+          "$ref": "#/components/schemas/OrderStatus"
+        integrationSyncState:
+          "$ref": "#/components/schemas/OrderIntegrationSyncState"
+        lastSyncErrorCode:
+          type:
+          - string
+          - 'null'
+          description: Optional stable code for support; omit or generic for client-visible errors.
+        lastSyncErrorMessage:
+          type:
+          - string
+          - 'null'
+          description: Safe short message for client or support; no stack traces.
+        retryable:
+          type:
+          - boolean
+          - 'null'
+          description: Whether the platform will retry automatic sync without manual action.
+        paymentStatus:
+          "$ref": "#/components/schemas/PaymentStatus"
+        totalAmount:
+          type: number
+        vatAmount:
+          type: number
+          description: VAT amount included in totalAmount (НДС)
+        itemsCount:
+          type: integer
+          description: Number of unique line items (позиций)
+        createdAt:
+          type: string
+          format: date-time
+        deliverySummary:
+          oneOf:
+          - "$ref": "#/components/schemas/OrderDeliverySummary"
+          - type: 'null'
+    OrderItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productId
+      - name
+      - quantity
+      - unit
+      - unitPrice
+      - lineTotal
+      properties:
+        productId:
+          type: string
+        nomenclatureGuid:
+          type:
+          - string
+          - 'null'
+        name:
+          type: string
+        sku:
+          type:
+          - string
+          - 'null'
+        quantity:
+          type: number
+        unit:
+          type: string
+          description: Unit of measure from 1C (e.g. шт, кг, л)
+          example: шт
+        unitPrice:
+          type: number
+        lineTotal:
+          type: number
+    OrderPayment:
+      type: object
+      additionalProperties: false
+      required:
+      - paymentStatus
+      properties:
+        paymentStatus:
+          "$ref": "#/components/schemas/PaymentStatus"
+        paymentMode:
+          type:
+          - string
+          - 'null'
+        dueDate:
+          type:
+          - string
+          - 'null'
+          format: date
+        amountToPay:
+          type:
+          - number
+          - 'null'
+    OrderDeliveryDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        deliveryType:
+          type:
+          - string
+          - 'null'
+        plannedDate:
+          type:
+          - string
+          - 'null'
+          format: date
+        timeSlot:
+          type:
+          - string
+          - 'null'
+        carrierName:
+          type:
+          - string
+          - 'null'
+        trackingNumber:
+          type:
+          - string
+          - 'null'
+        trackingUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        driverName:
+          type:
+          - string
+          - 'null'
+        driverPhone:
+          type:
+          - string
+          - 'null'
+        routeGuid:
+          type:
+          - string
+          - 'null'
+        events:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderDeliveryEvent"
+    OrderDocumentLink:
+      type: object
+      additionalProperties: false
+      required:
+      - documentType
+      - title
+      properties:
+        documentId:
+          type:
+          - string
+          - 'null'
+        documentType:
+          type: string
+        title:
+          type: string
+        available:
+          type: boolean
+    RepeatOrderAddedItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productId
+      - quantity
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: number
+    RepeatOrderExcludedItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productId
+      - reason
+      properties:
+        productId:
+          type: string
+        reason:
+          "$ref": "#/components/schemas/RepeatOrderExcludedReason"
+        message:
+          type:
+          - string
+          - 'null'
+    OrderDocumentMeta:
+      type: object
+      additionalProperties: false
+      required:
+      - documentType
+      - title
+      - available
+      properties:
+        documentId:
+          type:
+          - string
+          - 'null'
+        documentType:
+          type: string
+        title:
+          type: string
+        available:
+          type: boolean
+    OrderIntegrationSyncState:
+      type: string
+      description: 'Platform-side state of delivering the order to 1C (queue, retries). Not a seventh OrderStatus.
+
+'
+      enum:
+      - pending
+      - synced
+      - failed
+      - manual_review_required
+    PaymentStatus:
+      type: string
+      enum:
+      - unpaid
+      - partially_paid
+      - paid
+    OrderDeliverySummary:
+      type: object
+      additionalProperties: false
+      properties:
+        deliveryType:
+          type:
+          - string
+          - 'null'
+        plannedDate:
+          type:
+          - string
+          - 'null'
+          format: date
+        trackingNumber:
+          type:
+          - string
+          - 'null'
+    OrderDeliveryEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - label
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        happenedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    RepeatOrderExcludedReason:
+      type: string
+      enum:
+      - archived_no_stock
+      - not_found
+      - not_available_for_order
+    UuidString:
+      type: string
+      format: uuid
+      description: GUID сущности в 1С.
+    OneCExchangeRequest:
+      description: |
+        Тело `POST /exchange`. Тип `payload` определяется полем `event` (discriminator).
+        Канон примеров — `входящие/incoming-hooks.md`; модель — `Модель_данных_каталог_1С_обмен.md`.
+      oneOf:
+      - "$ref": "#/components/schemas/OneCExchangeSyncProductAttributes"
+      - "$ref": "#/components/schemas/OneCExchangeSyncProductTypes"
+      - "$ref": "#/components/schemas/OneCExchangeSyncProductTypeCharacteristics"
+      - "$ref": "#/components/schemas/OneCExchangeSyncProducts"
+      - "$ref": "#/components/schemas/OneCExchangeSyncStocks"
+      - "$ref": "#/components/schemas/OneCExchangeSyncPrices"
+      - "$ref": "#/components/schemas/OneCExchangeSyncCategories"
+      - "$ref": "#/components/schemas/OneCExchangeSyncCounterparties"
+      discriminator:
+        propertyName: event
+        mapping:
+          sync.product-attributes: "#/components/schemas/OneCExchangeSyncProductAttributes"
+          sync.product-types: "#/components/schemas/OneCExchangeSyncProductTypes"
+          sync.product-type-characteristics: "#/components/schemas/OneCExchangeSyncProductTypeCharacteristics"
+          sync.products: "#/components/schemas/OneCExchangeSyncProducts"
+          sync.stocks: "#/components/schemas/OneCExchangeSyncStocks"
+          sync.prices: "#/components/schemas/OneCExchangeSyncPrices"
+          sync.categories: "#/components/schemas/OneCExchangeSyncCategories"
+          sync.counterparties: "#/components/schemas/OneCExchangeSyncCounterparties"
+    OneCExchangeSyncProductAttributes:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.product-attributes
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductAttributeDefinition"
+    OneCExchangeSyncProductTypes:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.product-types
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductTypeItem"
+    OneCExchangeSyncProductTypeCharacteristics:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.product-type-characteristics
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductTypeCharacteristicItem"
+    OneCExchangeSyncProducts:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.products
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductItem"
+    OneCExchangeSyncStocks:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.stocks
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncStockItem"
+    OneCExchangeSyncPrices:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.prices
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncPriceItem"
+    OneCExchangeSyncCategories:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.categories
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncCategoryItem"
+    OneCExchangeSyncCounterparties:
+      type: object
+      additionalProperties: false
+      required:
+      - event
+      - payload
+      properties:
+        event:
+          type: string
+          const: sync.counterparties
+        payload:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncCounterpartyItem"
+    SyncProductAttributeDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - label
+      - valueType
+      - filterType
+      - isFilterable
+      - isMulti
+      - categories
+      properties:
+        code:
+          type: string
+          description: Уникальный код атрибута (например `worktype`, `density`).
+        label:
+          type: string
+          description: Название для витрины.
+        valueType:
+          type: string
+          enum:
+          - string
+          - number
+          - bool
+        filterType:
+          type: string
+          enum:
+          - select
+          - range
+          - boolean
+          - none
+        unit:
+          type:
+          - string
+          - 'null'
+          description: Единица измерения для отображения (например `г/см3`).
+        isFilterable:
+          type: boolean
+        isMulti:
+          type: boolean
+          description: Несколько значений одного атрибута на товаре.
+        categories:
+          type: array
+          description: GUID категорий, где атрибут актуален; `["*"]` — все категории.
+          items:
+            type: string
+        subvalueOptions:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+          description: Словарь кодов подзначений (например для `compatibility`).
+    SyncProductTypeItem:
+      type: object
+      additionalProperties: false
+      required:
+      - guid
+      - name
+      properties:
+        guid:
+          "$ref": "#/components/schemas/UuidString"
+        name:
+          type: string
+    SyncProductTypeCharacteristicItem:
+      type: object
+      additionalProperties: false
+      required:
+      - guid
+      - typeGuid
+      - name
+      - isDefault
+      - isArchived
+      properties:
+        guid:
+          "$ref": "#/components/schemas/UuidString"
+        typeGuid:
+          "$ref": "#/components/schemas/UuidString"
+        name:
+          type: string
+          description: Наименование характеристики (фасовка и т.п.).
+        isDefault:
+          type: boolean
+        isArchived:
+          type: boolean
+    ProductAttributeBinding:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - values
+      properties:
+        code:
+          type: string
+        values:
+          type: array
+          minItems: 1
+          items:
+            "$ref": "#/components/schemas/ProductAttributeBindingValue"
+    ProductAttributeBindingValue:
+      type: object
+      additionalProperties: false
+      required:
+      - value
+      properties:
+        value:
+          description: Значение атрибута; тип согласован с `valueType` справочника.
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+        subvalue:
+          type: string
+          description: Код подзначения (ключ из `subvalueOptions`).
+    SyncProductMarketplaceUrl:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - url
+      properties:
+        type:
+          type: string
+          description: Код маркетплейса (например `ozon`, `wb`).
+        url:
+          type: string
+          format: uri
+    SyncProductImage:
+      type: object
+      additionalProperties: false
+      required:
+      - fileName
+      - contentType
+      - dataBase64
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+          example: image/jpeg
+        dataBase64:
+          type: string
+          description: Base64-содержимое файла (без data-URL префикса).
+    SyncProductItem:
+      type: object
+      additionalProperties: false
+      required:
+      - guid
+      - typeGuid
+      - sku
+      - name
+      - attributes
+      - isArchived
+      properties:
+        guid:
+          "$ref": "#/components/schemas/UuidString"
+        typeGuid:
+          "$ref": "#/components/schemas/UuidString"
+        parentGuid:
+          oneOf:
+          - "$ref": "#/components/schemas/UuidString"
+          - type: 'null'
+          description: GUID категории в 1С.
+        counterpartiesGuid:
+          oneOf:
+          - "$ref": "#/components/schemas/UuidString"
+          - type: 'null'
+          description: Персональная номенклатура — GUID контрагента-владельца.
+        sku:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        description:
+          type: string
+        productionTimeDays:
+          type: integer
+          minimum: 0
+        unitsPerBox:
+          type: integer
+          minimum: 1
+        attributes:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ProductAttributeBinding"
+        marketplaceUrls:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductMarketplaceUrl"
+        isArchived:
+          type: boolean
+        images:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncProductImage"
+    SyncStockItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productGuid
+      - characteristicGuid
+      - stockQty
+      properties:
+        productGuid:
+          "$ref": "#/components/schemas/UuidString"
+        characteristicGuid:
+          "$ref": "#/components/schemas/UuidString"
+        stockQty:
+          type: number
+          description: Остаток в базовых единицах учёта.
+    SyncPriceItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productGuid
+      - characteristicGuid
+      - currency
+      - amount
+      - priceTypeCode
+      properties:
+        productGuid:
+          "$ref": "#/components/schemas/UuidString"
+        characteristicGuid:
+          "$ref": "#/components/schemas/UuidString"
+        currency:
+          type: string
+          example: RUB
+        amount:
+          type: number
+          description: Цена за единицу (штуку) для данного `priceTypeCode`.
+        amountPerBox:
+          type:
+          - number
+          - 'null'
+          description: Опционально — цена за коробку в той же строке (дублирование для удобства 1С).
+        priceTypeCode:
+          type: string
+          description: Код вида цены (`RETAIL`, `WHOLESALE`, `BOX` — MVP).
+    SyncCategoryItem:
+      type: object
+      additionalProperties: false
+      required:
+      - guid
+      - name
+      - isArchived
+      properties:
+        guid:
+          "$ref": "#/components/schemas/UuidString"
+        parentGuid:
+          oneOf:
+          - "$ref": "#/components/schemas/UuidString"
+          - type: 'null'
+        name:
+          type: string
+        isArchived:
+          type: boolean
+        counterparties:
+          "$ref": "#/components/schemas/UuidString"
+          description: Опционально — категория персонального ассортимента контрагента.
+    SyncCounterpartyDiscountItem:
+      type: object
+      additionalProperties: false
+      required:
+      - productGuid
+      - characteristicGuid
+      - price
+      properties:
+        productGuid:
+          "$ref": "#/components/schemas/UuidString"
+        characteristicGuid:
+          "$ref": "#/components/schemas/UuidString"
+        price:
+          type: number
+        priceBox:
+          type: number
+          description: Персональная цена за коробку.
+    SyncCounterpartyPaymentTerms:
+      type: object
+      additionalProperties: false
+      properties:
+        priceTypeCode:
+          type: string
+        paymentMode:
+          type: string
+          description: Например `postpayment`.
+        defermentDays:
+          type: integer
+          minimum: 0
+        creditLimit:
+          type: number
+        hasPostpayAccess:
+          type: boolean
+        discountPercent:
+          type: number
+          description: Персональная скидка на розничную цену (`RETAIL`).
+        discounts:
+          type: array
+          items:
+            "$ref": "#/components/schemas/SyncCounterpartyDiscountItem"
+    SyncCounterpartyItem:
+      type: object
+      additionalProperties: false
+      required:
+      - guid
+      - name
+      properties:
+        guid:
+          "$ref": "#/components/schemas/UuidString"
+        name:
+          type: string
+        inn:
+          type: string
+        kpp:
+          type: string
+        legalAddress:
+          type: string
+        registrationRequestGuid:
+          "$ref": "#/components/schemas/UuidString"
+          description: Связь с заявкой на регистрацию на платформе.
+        paymentTerms:
+          "$ref": "#/components/schemas/SyncCounterpartyPaymentTerms"
+    ExchangeAcceptedResponse:
+      type: object
+      additionalProperties: false
+      description: Минимальный ответ согласованной успешной приёмки; может быть расширен (jobId и т.д.).
+      required:
+      - ok
+      properties:
+        ok:
+          type: boolean
+          example: true
+```

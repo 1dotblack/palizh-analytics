@@ -1,0 +1,631 @@
+{
+  "built_at": "2026-06-30T09:31:38Z",
+  "git_rev": "ad4c899",
+  "bundle_root": "export/buildin/bundle",
+  "sources": "export/buildin/SOURCES.json",
+  "converter": "md_to_buildin_blocks.rb",
+  "tree": {
+    "title": "Palizh — документация",
+    "icon": "📚",
+    "section": "root",
+    "children": [
+      {
+        "title": "О проекте",
+        "icon": "📋",
+        "section": "01_о_проекте",
+        "children": [
+          {
+            "title": "README репозитория",
+            "source_rel": "README.md",
+            "bundle_path": "01_о_проекте/README.md",
+            "kind": "document"
+          },
+          {
+            "title": "План проекта на старте",
+            "source_rel": "План проекта/План проекта на старте.md",
+            "bundle_path": "01_о_проекте/План проекта на старте.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "ЧТЗ",
+        "icon": "📑",
+        "section": "02_чтз",
+        "children": [
+          {
+            "title": "Оглавление",
+            "source_rel": "ЧТЗ/Оглавление.md",
+            "bundle_path": "02_чтз/Оглавление.md",
+            "kind": "document"
+          },
+          {
+            "title": "Глоссарий",
+            "source_rel": "ЧТЗ/Глоссарий.md",
+            "bundle_path": "02_чтз/Глоссарий.md",
+            "kind": "document"
+          },
+          {
+            "title": "Матрица_статусов_и_источников",
+            "source_rel": "ЧТЗ/Матрица_статусов_и_источников.md",
+            "bundle_path": "02_чтз/Матрица_статусов_и_источников.md",
+            "kind": "document"
+          },
+          {
+            "title": "Сводка_онбординг_и_идентификаторы",
+            "source_rel": "ЧТЗ/Сводка_онбординг_и_идентификаторы.md",
+            "bundle_path": "02_чтз/Сводка_онбординг_и_идентификаторы.md",
+            "kind": "document"
+          },
+          {
+            "title": "01_процесс_оформления_заказа",
+            "source_rel": "ЧТЗ/01_процесс_оформления_заказа.md",
+            "bundle_path": "02_чтз/01_процесс_оформления_заказа.md",
+            "kind": "document"
+          },
+          {
+            "title": "02_документооборот",
+            "source_rel": "ЧТЗ/02_документооборот.md",
+            "bundle_path": "02_чтз/02_документооборот.md",
+            "kind": "document"
+          },
+          {
+            "title": "03_доставка",
+            "source_rel": "ЧТЗ/03_доставка.md",
+            "bundle_path": "02_чтз/03_доставка.md",
+            "kind": "document"
+          },
+          {
+            "title": "04_претензии",
+            "source_rel": "ЧТЗ/04_претензии.md",
+            "bundle_path": "02_чтз/04_претензии.md",
+            "kind": "document"
+          },
+          {
+            "title": "05_регистрация_онбординг",
+            "source_rel": "ЧТЗ/05_регистрация_онбординг.md",
+            "bundle_path": "02_чтз/05_регистрация_онбординг.md",
+            "kind": "document"
+          },
+          {
+            "title": "06_витрина_каталог",
+            "source_rel": "ЧТЗ/06_витрина_каталог.md",
+            "bundle_path": "02_чтз/06_витрина_каталог.md",
+            "kind": "document"
+          },
+          {
+            "title": "07_ЛК_профиль_компания",
+            "source_rel": "ЧТЗ/07_ЛК_профиль_компания.md",
+            "bundle_path": "02_чтз/07_ЛК_профиль_компания.md",
+            "kind": "document"
+          },
+          {
+            "title": "08_ЛК_заказы_статусы",
+            "source_rel": "ЧТЗ/08_ЛК_заказы_статусы.md",
+            "bundle_path": "02_чтз/08_ЛК_заказы_статусы.md",
+            "kind": "document"
+          },
+          {
+            "title": "09_интеграция_1С",
+            "source_rel": "ЧТЗ/09_интеграция_1С.md",
+            "bundle_path": "02_чтз/09_интеграция_1С.md",
+            "kind": "document"
+          },
+          {
+            "title": "10_уведомления",
+            "source_rel": "ЧТЗ/10_уведомления.md",
+            "bundle_path": "02_чтз/10_уведомления.md",
+            "kind": "document"
+          },
+          {
+            "title": "11_поиск",
+            "source_rel": "ЧТЗ/11_поиск.md",
+            "bundle_path": "02_чтз/11_поиск.md",
+            "kind": "document"
+          },
+          {
+            "title": "12_система_управления",
+            "source_rel": "ЧТЗ/12_система_управления.md",
+            "bundle_path": "02_чтз/12_система_управления.md",
+            "kind": "document"
+          },
+          {
+            "title": "13_нефункциональные_требования",
+            "source_rel": "ЧТЗ/13_нефункциональные_требования.md",
+            "bundle_path": "02_чтз/13_нефункциональные_требования.md",
+            "kind": "document"
+          },
+          {
+            "title": "14_обучение_академия",
+            "source_rel": "ЧТЗ/14_обучение_академия.md",
+            "bundle_path": "02_чтз/14_обучение_академия.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "Понимание задачи",
+        "icon": "🎯",
+        "section": "03_понимание",
+        "children": [
+          {
+            "title": "Понимание_задачи",
+            "source_rel": "Понимание задачи/Понимание_задачи.md",
+            "bundle_path": "03_понимание/Понимание_задачи.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "Инфарх",
+        "icon": "🏗",
+        "section": "04_инфарх",
+        "children": [
+          {
+            "title": "видение-и-границы",
+            "source_rel": "Инфарх/видение-и-границы.md",
+            "bundle_path": "04_инфарх/видение-и-границы.md",
+            "kind": "document"
+          },
+          {
+            "title": "информационная-архитектура",
+            "source_rel": "Инфарх/информационная-архитектура.md",
+            "bundle_path": "04_инфарх/информационная-архитектура.md",
+            "kind": "document"
+          },
+          {
+            "title": "обучение-и-образовательные-активности",
+            "source_rel": "Инфарх/обучение-и-образовательные-активности.md",
+            "bundle_path": "04_инфарх/обучение-и-образовательные-активности.md",
+            "kind": "document"
+          },
+          {
+            "title": "состав-и-задачи-страниц",
+            "source_rel": "Инфарх/состав-и-задачи-страниц.md",
+            "bundle_path": "04_инфарх/состав-и-задачи-страниц.md",
+            "kind": "document"
+          },
+          {
+            "title": "структура-страниц",
+            "source_rel": "Инфарх/структура-страниц.md",
+            "bundle_path": "04_инфарх/структура-страниц.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "USCases и роли",
+        "icon": "👥",
+        "section": "05_uscases",
+        "children": [
+          {
+            "title": "README",
+            "source_rel": "uscases/README.md",
+            "bundle_path": "05_uscases/README.md",
+            "kind": "document"
+          },
+          {
+            "title": "00_матрица_ролей_и_зон_ответственности",
+            "source_rel": "uscases/00_матрица_ролей_и_зон_ответственности.md",
+            "bundle_path": "05_uscases/00_матрица_ролей_и_зон_ответственности.md",
+            "kind": "document"
+          },
+          {
+            "title": "01_сквозные_mvp_сценарии",
+            "source_rel": "uscases/01_сквозные_mvp_сценарии.md",
+            "bundle_path": "05_uscases/01_сквозные_mvp_сценарии.md",
+            "kind": "document"
+          },
+          {
+            "title": "03_покрытие_инфарха",
+            "source_rel": "uscases/03_покрытие_инфарха.md",
+            "bundle_path": "05_uscases/03_покрытие_инфарха.md",
+            "kind": "document"
+          },
+          {
+            "title": "сценарии_авторизация_и_регистрация",
+            "source_rel": "uscases/сценарии_авторизация_и_регистрация.md",
+            "bundle_path": "05_uscases/сценарии_авторизация_и_регистрация.md",
+            "kind": "document"
+          },
+          {
+            "title": "README",
+            "source_rel": "uscases/потоки_для_дизайна/README.md",
+            "bundle_path": "05_uscases/README.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_01_регистрация_активация_первый_вход",
+            "source_rel": "uscases/потоки_для_дизайна/поток_01_регистрация_активация_первый_вход.md",
+            "bundle_path": "05_uscases/поток_01_регистрация_активация_первый_вход.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_02_вход_восстановление_пароля",
+            "source_rel": "uscases/потоки_для_дизайна/поток_02_вход_восстановление_пароля.md",
+            "bundle_path": "05_uscases/поток_02_вход_восстановление_пароля.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_03_каталог_поиск_карточка",
+            "source_rel": "uscases/потоки_для_дизайна/поток_03_каталог_поиск_карточка.md",
+            "bundle_path": "05_uscases/поток_03_каталог_поиск_карточка.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_04_корзина_оформление_заказа",
+            "source_rel": "uscases/потоки_для_дизайна/поток_04_корзина_оформление_заказа.md",
+            "bundle_path": "05_uscases/поток_04_корзина_оформление_заказа.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_05_документы_акт_сверки",
+            "source_rel": "uscases/потоки_для_дизайна/поток_05_документы_акт_сверки.md",
+            "bundle_path": "05_uscases/поток_05_документы_акт_сверки.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_06_претензия_mvp",
+            "source_rel": "uscases/потоки_для_дизайна/поток_06_претензия_mvp.md",
+            "bundle_path": "05_uscases/поток_06_претензия_mvp.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_07_нестандартная_заявка",
+            "source_rel": "uscases/потоки_для_дизайна/поток_07_нестандартная_заявка.md",
+            "bundle_path": "05_uscases/поток_07_нестандартная_заявка.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_08_обучение_заявка",
+            "source_rel": "uscases/потоки_для_дизайна/поток_08_обучение_заявка.md",
+            "bundle_path": "05_uscases/поток_08_обучение_заявка.md",
+            "kind": "document"
+          },
+          {
+            "title": "поток_09_админка_поддержка",
+            "source_rel": "uscases/потоки_для_дизайна/поток_09_админка_поддержка.md",
+            "bundle_path": "05_uscases/поток_09_админка_поддержка.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_бухгалтер",
+            "source_rel": "uscases/роль_бухгалтер.md",
+            "bundle_path": "05_uscases/роль_бухгалтер.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_гость_витрина",
+            "source_rel": "uscases/роль_гость_витрина.md",
+            "bundle_path": "05_uscases/роль_гость_витрина.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_директор_лпр",
+            "source_rel": "uscases/роль_директор_лпр.md",
+            "bundle_path": "05_uscases/роль_директор_лпр.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_закупщик",
+            "source_rel": "uscases/роль_закупщик.md",
+            "bundle_path": "05_uscases/роль_закупщик.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_контент_менеджер",
+            "source_rel": "uscases/роль_контент_менеджер.md",
+            "bundle_path": "05_uscases/роль_контент_менеджер.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_мастер_аккаунт_клиента",
+            "source_rel": "uscases/роль_мастер_аккаунт_клиента.md",
+            "bundle_path": "05_uscases/роль_мастер_аккаунт_клиента.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_менеджер_сопровождения",
+            "source_rel": "uscases/роль_менеджер_сопровождения.md",
+            "bundle_path": "05_uscases/роль_менеджер_сопровождения.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_оператор_админки",
+            "source_rel": "uscases/роль_оператор_админки.md",
+            "bundle_path": "05_uscases/роль_оператор_админки.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_поддержка_оператор",
+            "source_rel": "uscases/роль_поддержка_оператор.md",
+            "bundle_path": "05_uscases/роль_поддержка_оператор.md",
+            "kind": "document"
+          },
+          {
+            "title": "роль_суперадмин",
+            "source_rel": "uscases/роль_суперадмин.md",
+            "bundle_path": "05_uscases/роль_суперадмин.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "Техническая часть — архитектура",
+        "icon": "⚙️",
+        "section": "06_тех_архитектура",
+        "children": [
+          {
+            "title": "Архитектура_платформы",
+            "source_rel": "Техническая часть/Архитектура_платформы.md",
+            "bundle_path": "06_тех_архитектура/Архитектура_платформы.md",
+            "kind": "document"
+          },
+          {
+            "title": "Backend_архитектура",
+            "source_rel": "Техническая часть/Backend_архитектура.md",
+            "bundle_path": "06_тех_архитектура/Backend_архитектура.md",
+            "kind": "document"
+          },
+          {
+            "title": "Backend_план_работ_MVP",
+            "source_rel": "Техническая часть/Backend_план_работ_MVP.md",
+            "bundle_path": "06_тех_архитектура/Backend_план_работ_MVP.md",
+            "kind": "document"
+          },
+          {
+            "title": "Backend_готовность_MVP_матрица",
+            "source_rel": "Техническая часть/Backend_готовность_MVP_матрица.md",
+            "bundle_path": "06_тех_архитектура/Backend_готовность_MVP_матрица.md",
+            "kind": "document"
+          },
+          {
+            "title": "Frontend_архитектура",
+            "source_rel": "Техническая часть/Frontend_архитектура.md",
+            "bundle_path": "06_тех_архитектура/Frontend_архитектура.md",
+            "kind": "document"
+          },
+          {
+            "title": "Техстек_общий",
+            "source_rel": "Техническая часть/Техстек_общий.md",
+            "bundle_path": "06_тех_архитектура/Техстек_общий.md",
+            "kind": "document"
+          },
+          {
+            "title": "Нефункциональные_требования",
+            "source_rel": "Техническая часть/Нефункциональные_требования.md",
+            "bundle_path": "06_тех_архитектура/Нефункциональные_требования.md",
+            "kind": "document"
+          },
+          {
+            "title": "Инфраструктура_и_CI-CD",
+            "source_rel": "Техническая часть/Инфраструктура_и_CI-CD.md",
+            "bundle_path": "06_тех_архитектура/Инфраструктура_и_CI-CD.md",
+            "kind": "document"
+          },
+          {
+            "title": "Наблюдаемость_и_логи",
+            "source_rel": "Техническая часть/Наблюдаемость_и_логи.md",
+            "bundle_path": "06_тех_архитектура/Наблюдаемость_и_логи.md",
+            "kind": "document"
+          },
+          {
+            "title": "Мобильное_приложение_подход",
+            "source_rel": "Техническая часть/Мобильное_приложение_подход.md",
+            "bundle_path": "06_тех_архитектура/Мобильное_приложение_подход.md",
+            "kind": "document"
+          },
+          {
+            "title": "admin_role_and_routing_matrix",
+            "source_rel": "Техническая часть/admin_role_and_routing_matrix.md",
+            "bundle_path": "06_тех_архитектура/admin_role_and_routing_matrix.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "Техническая часть — 1С и контракты",
+        "icon": "🔗",
+        "section": "07_тех_1с",
+        "children": [
+          {
+            "title": "Интеграция_1С",
+            "source_rel": "Техническая часть/Интеграция_1С.md",
+            "bundle_path": "07_тех_1с/Интеграция_1С.md",
+            "kind": "document"
+          },
+          {
+            "title": "Модель_данных_каталог_1С_обмен",
+            "source_rel": "Техническая часть/Модель_данных_каталог_1С_обмен.md",
+            "bundle_path": "07_тех_1с/Модель_данных_каталог_1С_обмен.md",
+            "kind": "document"
+          },
+          {
+            "title": "1C_API_контракт_и_этапы",
+            "source_rel": "Техническая часть/1C_API_контракт_и_этапы.md",
+            "bundle_path": "07_тех_1с/1C_API_контракт_и_этапы.md",
+            "kind": "document"
+          },
+          {
+            "title": "Задание_1С_разработчику",
+            "source_rel": "Техническая часть/Задание_1С_разработчику.md",
+            "bundle_path": "07_тех_1с/Задание_1С_разработчику.md",
+            "kind": "document"
+          },
+          {
+            "title": "Маппинг_API_1С",
+            "source_rel": "Техническая часть/Маппинг_API_1С.md",
+            "bundle_path": "07_тех_1с/Маппинг_API_1С.md",
+            "kind": "document"
+          },
+          {
+            "title": "Принятые_решения_API_интеграция_1С",
+            "source_rel": "Техническая часть/Принятые_решения_API_интеграция_1С.md",
+            "bundle_path": "07_тех_1с/Принятые_решения_API_интеграция_1С.md",
+            "kind": "document"
+          },
+          {
+            "title": "1С_contract_matrix",
+            "source_rel": "Техническая часть/1С_contract_matrix.md",
+            "bundle_path": "07_тех_1с/1С_contract_matrix.md",
+            "kind": "document"
+          },
+          {
+            "title": "order_lifecycle_contract",
+            "source_rel": "Техническая часть/order_lifecycle_contract.md",
+            "bundle_path": "07_тех_1с/order_lifecycle_contract.md",
+            "kind": "document"
+          },
+          {
+            "title": "document_delivery_contract",
+            "source_rel": "Техническая часть/document_delivery_contract.md",
+            "bundle_path": "07_тех_1с/document_delivery_contract.md",
+            "kind": "document"
+          },
+          {
+            "title": "Email_уведомления_MVP_регламент_и_переменные",
+            "source_rel": "Техническая часть/Email_уведомления_MVP_регламент_и_переменные.md",
+            "bundle_path": "07_тех_1с/Email_уведомления_MVP_регламент_и_переменные.md",
+            "kind": "document"
+          },
+          {
+            "title": "Задание_разработчику_админка_MVP",
+            "source_rel": "Техническая часть/Задание_разработчику_админка_MVP.md",
+            "bundle_path": "07_тех_1с/Задание_разработчику_админка_MVP.md",
+            "kind": "document"
+          },
+          {
+            "title": "Форма_претензии_UI_API",
+            "source_rel": "Техническая часть/Форма_претензии_UI_API.md",
+            "bundle_path": "07_тех_1с/Форма_претензии_UI_API.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "OpenAPI — пояснения",
+        "icon": "📖",
+        "section": "08_openapi_пояснения",
+        "children": [
+          {
+            "title": "OpenAPI_индекс",
+            "source_rel": "Техническая часть/OpenAPI_индекс.md",
+            "bundle_path": "08_openapi_пояснения/OpenAPI_индекс.md",
+            "kind": "document"
+          },
+          {
+            "title": "openapi_mvp_auth_onboarding",
+            "source_rel": "Техническая часть/openapi_mvp_auth_onboarding.md",
+            "bundle_path": "08_openapi_пояснения/openapi_mvp_auth_onboarding.md",
+            "kind": "document"
+          },
+          {
+            "title": "openapi_mvp_catalog_product",
+            "source_rel": "Техническая часть/openapi_mvp_catalog_product.md",
+            "bundle_path": "08_openapi_пояснения/openapi_mvp_catalog_product.md",
+            "kind": "document"
+          },
+          {
+            "title": "openapi_mvp_cart_checkout_orders",
+            "source_rel": "Техническая часть/openapi_mvp_cart_checkout_orders.md",
+            "bundle_path": "08_openapi_пояснения/openapi_mvp_cart_checkout_orders.md",
+            "kind": "document"
+          },
+          {
+            "title": "openapi_mvp_integration_1c",
+            "source_rel": "Техническая часть/openapi_mvp_integration_1c.md",
+            "bundle_path": "08_openapi_пояснения/openapi_mvp_integration_1c.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "OpenAPI — спецификации",
+        "icon": "📄",
+        "section": "09_openapi_yaml",
+        "children": [
+          {
+            "title": "OpenAPI MVP merged (клиент + 1С inbound)",
+            "source_rel": "Техническая часть/openapi_mvp_merged.yaml",
+            "bundle_path": "09_openapi_yaml/openapi_mvp_merged.md",
+            "kind": "openapi"
+          },
+          {
+            "title": "Публичный HTTP API",
+            "source_rel": "Техническая часть/public-http-openapi.yaml",
+            "bundle_path": "09_openapi_yaml/public-http-openapi.md",
+            "kind": "openapi"
+          },
+          {
+            "title": "Платформа → 1С (1c-http)",
+            "source_rel": "Техническая часть/1c-http-openapi.yaml",
+            "bundle_path": "09_openapi_yaml/1c-http-openapi.md",
+            "kind": "openapi"
+          },
+          {
+            "title": "OpenAPI post-MVP",
+            "source_rel": "Техническая часть/openapi_mvp_post_mvp.yaml",
+            "bundle_path": "09_openapi_yaml/openapi_mvp_post_mvp.md",
+            "kind": "openapi"
+          }
+        ]
+      },
+      {
+        "title": "Интервью и встречи",
+        "icon": "💬",
+        "section": "10_интервью",
+        "children": [
+          {
+            "title": "Информация на старте",
+            "source_rel": "Интервью и встречи/Информация на старте.md",
+            "bundle_path": "10_интервью/Информация на старте.md",
+            "kind": "document"
+          },
+          {
+            "title": "Карта_заинтересованных_сторон",
+            "source_rel": "Интервью и встречи/Карта_заинтересованных_сторон.md",
+            "bundle_path": "10_интервью/Карта_заинтересованных_сторон.md",
+            "kind": "document"
+          },
+          {
+            "title": "Реестр_открытых_вопросов",
+            "source_rel": "Интервью и встречи/Реестр_открытых_вопросов.md",
+            "bundle_path": "10_интервью/Реестр_открытых_вопросов.md",
+            "kind": "document"
+          },
+          {
+            "title": "Реестр_документов_для_проектирования",
+            "source_rel": "Интервью и встречи/Реестр_документов_для_проектирования.md",
+            "bundle_path": "10_интервью/Реестр_документов_для_проектирования.md",
+            "kind": "document"
+          },
+          {
+            "title": "Вопросы_клиенту_по_процессу_заказа",
+            "source_rel": "Интервью и встречи/Вопросы_клиенту_по_процессу_заказа.md",
+            "bundle_path": "10_интервью/Вопросы_клиенту_по_процессу_заказа.md",
+            "kind": "document"
+          },
+          {
+            "title": "Аудит документации (2026-06-29)",
+            "source_rel": "Аудит_документации_2026-06-29.md",
+            "bundle_path": "10_интервью/Аудит_документации_2026-06-29.md",
+            "kind": "document"
+          }
+        ]
+      },
+      {
+        "title": "Входящие webhooks",
+        "icon": "📥",
+        "section": "11_входящие",
+        "children": [
+          {
+            "title": "incoming-hooks",
+            "source_rel": "входящие/incoming-hooks.md",
+            "bundle_path": "11_входящие/incoming-hooks.md",
+            "kind": "document"
+          }
+        ]
+      }
+    ]
+  }
+}

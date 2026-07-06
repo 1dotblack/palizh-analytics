@@ -9,6 +9,8 @@ info:
   description: |
     Спецификация **публичного** HTTP API для фронтенда и мобильного клиента (витрина, личный кабинет B2B).
 
+    **⚠ MVP / стенд (2026-06-26):** для реализации фронта и контрактных тестов **канон — `public-http-openapi.yaml`** (GitLab `docs/`, Laravel Sanctum). Этот файл — **продуктовый черновик** (JWT, модель `/catalogs/{code}/…`); **не выравнен** с текущим стендом (каталог `/products`, `GET /products/filters`, промо, коробка). Правки client-spec — **post-MVP** или точечно по согласованию; см. `OpenAPI_индекс.md`.
+
     **Не входит в этот файл:** входящие вызовы **1С → платформа** — `openapi_1c_inbound_mvp.yaml`. Исходящие **платформа → 1С** — `1c-http-openapi.yaml`.
 servers:
 - url: https://api.palizh.example/api/v1
@@ -621,6 +623,7 @@ paths:
       - Catalog
       summary: Search products
       description: >
+        Поиск по каталогу на платформе. Поля и ранжирование — ЧТЗ 11 §5.5–5.6.
         Same visibility rules as catalog listing: `exclusiveCounterpartyGuid` is evaluated on **base nomenclature** (aligned
         with `Product` in `1c-http-openapi.yaml`). Search results **never** include products that are not visible to the current
         viewer (guest / other B2B).
@@ -635,6 +638,10 @@ paths:
         schema:
           type: string
           minLength: 1
+          maxLength: 200
+        description: >
+          Поисковый запрос. UI рекомендует не вызывать API при длине &lt; 2 символов после trim.
+          Нормализация на backend — trim, схлопывание пробелов. См. ЧТЗ 11 §5.4, §5.7.
       - name: catalogCode
         in: query
         required: false
@@ -1553,6 +1560,16 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+          description: |
+            Адрес доставки одной строкой. Канон для нового ввода — `unrestricted_value`
+            из ответа DaData после выбора подсказки (ЧТЗ 01 §4.1.2). Для сохранённого
+            адреса — ранее сохранённая строка.
+        deliveryAddressFiasId:
+          type: string
+          format: uuid
+          description: |
+            Опционально. `data.fias_id` выбранной подсказки DaData; для проверки на бэке
+            и дедупликации в списке адресов.
         contactName:
           type: string
           minLength: 1
@@ -1601,6 +1618,16 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+          description: |
+            Адрес доставки одной строкой. Канон для нового ввода — `unrestricted_value`
+            из ответа DaData после выбора подсказки (ЧТЗ 01 §4.1.2). Для сохранённого
+            адреса — ранее сохранённая строка.
+        deliveryAddressFiasId:
+          type: string
+          format: uuid
+          description: |
+            Опционально. `data.fias_id` выбранной подсказки DaData; для проверки на бэке
+            и дедупликации в списке адресов.
         contactName:
           type: string
           minLength: 1
@@ -1944,10 +1971,9 @@ components:
       type: object
       additionalProperties: false
       description: |
-        Цена товара в текущем MVP API — одна цена за единицу измерения для авторизованного B2B-клиента.
-        Модель «двух цен» (кратно / некратно упаковке) из ЧТЗ 09 §3.2 и `НаборУпаковок` 1С
-        здесь НЕ моделируется — это следующий слой API (post-MVP). Корзинные пересчёты
-        по кратности и количественные скидки также не входят в этот объект.
+        Цены позиции для авторизованного B2B-клиента. `amount` — за штуку; `amountPerBox` — за коробку.
+        Корзинный пересчёт (смешанная кратность) — `CartItem`, ЧТЗ 01 §4.2.4.
+        Синхронизировать с `public-http-openapi.yaml` (`ProductPrice`).
       required:
       - currency
       - amount
@@ -1956,6 +1982,22 @@ components:
           type: string
         amount:
           type: number
+          description: Цена за штуку (розничный контур).
+        amountPerBox:
+          type:
+          - number
+          - 'null'
+          description: Цена за коробку целиком.
+        discountedAmount:
+          type:
+          - number
+          - 'null'
+          description: amount с персональной скидкой на розницу.
+        discountedAmountPerBox:
+          type:
+          - number
+          - 'null'
+          description: amountPerBox с персональной скидкой на розницу.
         baseAmount:
           type:
           - number
@@ -1992,8 +2034,56 @@ components:
           example: шт
         unitPrice:
           type: number
+          description: |
+            Средняя цена за unit = round(lineTotal / quantity, 2). Для UI;
+            quantity × unitPrice может отличаться от lineTotal на 1 коп.
         lineTotal:
           type: number
+          description: |
+            Сумма строки = round(boxPart,2) + round(piecePart,2), где
+            boxPart = fullBoxesCount × pricePerBox, piecePart = remainderQuantity × pricePerPiece.
+            RUB, 2 знака, round half up. Авторитетное поле для итога строки.
+        packagingMode:
+          type: string
+          enum:
+          - multiple
+          - mixed
+          - non_multiple
+          - not_applicable
+          description: |
+            multiple — quantity кратно unitsPerBox; mixed — есть целые коробки и остаток штук;
+            non_multiple — меньше одной полной упаковки; not_applicable — unitsPerBox ≤ 1.
+        unitsPerBox:
+          type:
+          - integer
+          - 'null'
+          description: Кратность упаковки из 1С (НаборУпаковок).
+        fullBoxesCount:
+          type: integer
+          description: Число полных упаковок в строке (floor(quantity / unitsPerBox)).
+        remainderQuantity:
+          type: number
+          description: Штуки вне полных упаковок (quantity − fullBoxesCount × unitsPerBox).
+        referenceUnitPricePerBox:
+          type:
+          - number
+          - 'null'
+          description: Цена за коробку (discountedAmountPerBox или amountPerBox) — для UI.
+        referenceUnitPricePerPiece:
+          type:
+          - number
+          - 'null'
+          description: Цена за штуку (discountedAmount или amount) — для UI.
+        referenceUnitPriceMultiple:
+          type:
+          - number
+          - 'null'
+          description: Опционально — pricePerBox / unitsPerBox (эффективная цена шт в коробке).
+        referenceUnitPriceNonMultiple:
+          type:
+          - number
+          - 'null'
+          description: Опционально — синоним referenceUnitPricePerPiece для подсказок.
         availability:
           "$ref": "#/components/schemas/ProductAvailability"
     CartTotals:

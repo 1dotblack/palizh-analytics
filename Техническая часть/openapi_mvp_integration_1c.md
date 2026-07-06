@@ -26,7 +26,7 @@
 
 | Метод | Path | Назначение |
 |-------|------|------------|
-| `POST` | `/exchange` | **Единый** вход: поля `event` + `payload`. События MVP: `sync.products`, `sync.counterparties`, `sync.categories`. Успех: **202** + тело `ExchangeAcceptedResponse` (см. YAML). |
+| `POST` | `/exchange` | **Единый** вход: `event` + `payload`. Каталог (канон GitLab / стенд): `sync.product-attributes`, `sync.product-types`, `sync.product-type-characteristics`, `sync.products`, `sync.stocks`, `sync.prices`, `sync.categories`, `sync.counterparties` — см. [`Модель_данных_каталог_1С_обмен.md`](Модель_данных_каталог_1С_обмен.md). Успех: **202** + `ExchangeAcceptedResponse`. |
 
 Идемпотентность пакетов, размеры payload, ретраи — по мере внедрения; базовая подпись тела **обязательна** (см. принятые решения).
 
@@ -51,4 +51,4 @@
 
 ## 5. Атрибуты товара в публичном API
 
-Схема `ProductAttribute` в `openapi_client_mvp.yaml`: в ответе по товару достаточно `code`, `name`, `value` — см. [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md) §1. Импорт из 1С в теле `sync.products` согласуется с полями в `входящие/incoming-hooks.md` и маппингом.
+Схема `ProductAttribute` в `openapi_client_mvp.yaml`: в ответе по товару — `code`, `name`, `value` (см. [`openapi_mvp_catalog_product.md`](openapi_mvp_catalog_product.md) §1). **Импорт каталога (канон GitLab / стенд):** отдельные `event` для атрибутов, типов, характеристик типа, товаров, остатков и цен; **`sync.products` без `variants[]`**, с **`attributes[]`**. Характеристики — **`sync.product-type-characteristics`** (`typeGuid`, `isDefault`, `isArchived`); остатки/цены — **`sync.stocks`** / **`sync.prices`**. Примеры — `входящие/incoming-hooks.md`, ER — `Модель_данных_каталог_1С_обмен.md`.

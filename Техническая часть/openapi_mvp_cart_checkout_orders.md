@@ -103,6 +103,47 @@ flowchart TB
 - Для авторизованного пользователя ценовой блок уже учитывает его контекст соглашения.
 - Корзина является рабочим объектом платформы, но использует мастер-данные и availability из `1С`.
 
+### 5.3 Расчёт цены строки и итога (ЧТЗ 01 §4.2.4)
+
+**Семантика 1С:** `amount` — за **штуку**, `amountPerBox` — за **коробку**.
+
+**Формула:**
+
+```
+boxPart   = round(fullBoxesCount × pricePerBox, 2)
+piecePart = round(remainderQuantity × pricePerPiece, 2)
+lineTotal = round(boxPart + piecePart, 2)
+unitPrice = round(lineTotal / quantity, 2)   // средняя; авторитет — lineTotal
+```
+
+`pricePerBox` = `discountedAmountPerBox` ?? `amountPerBox`; `pricePerPiece` = `discountedAmount` ?? `amount`.  
+Персональный % → на оба поля розницы; не на опт и не на вид `BOX` в `sync.prices`.  
+Округление: **RUB, 2 знака, round half up**.
+
+| Поле `CartItem` | Смысл |
+| --------------- | ----- |
+| `unitPrice` | Средняя цена за `unit` для текущего `quantity` |
+| `lineTotal` | По формуле выше |
+| `packagingMode` | `multiple` / `mixed` / `non_multiple` / `not_applicable` |
+| `unitsPerBox` | Из товара 1С |
+| `fullBoxesCount` | Целые упаковки в строке |
+| `remainderQuantity` | Штуки вне полных упаковок |
+| `referenceUnitPricePerBox` | Цена за коробку (справочно) |
+| `referenceUnitPricePerPiece` | Цена за штуку (справочно) |
+
+| Поле `CartTotals` | Смысл |
+| ----------------- | ----- |
+| `subtotal` | Σ `lineTotal` |
+| `discountTotal` | Агрегированная скидка (если выделяется) |
+| `vatAmount` | НДС в итоге |
+| `total` | Итог к оплате (без доставки на MVP) |
+
+**Пример:** `unitsPerBox = 15`, `quantity = 20` → 1×`pricePerBox` + 5×`pricePerPiece`, `packagingMode = mixed`.
+
+**Warning `packaging_partial_boxes`:** при `mixed` или `non_multiple` — неблокирующее пояснение о цене за штуку на остаток.
+
+**Модель:** вариант **A** (backend). Округление и скидка — **ЧТЗ 01 §4.2.4** (реестр **№57 закрыт**).
+
 ---
 
 ## 6. Контракт по checkout
@@ -221,7 +262,8 @@ Endpoint должен:
 
 | Поле | Тип | Комментарий |
 | ---- | --- | ----------- |
-| `deliveryAddress` | `string` | Адрес доставки |
+| `deliveryAddress` | `string` | Адрес доставки; канон — `unrestricted_value` DaData (ЧТЗ 01 §4.1.2) |
+| `deliveryAddressFiasId` | `string` (uuid), опц. | `data.fias_id` выбранной подсказки DaData |
 | `contactName` | `string` | Контактное лицо |
 | `contactPhone` | `string` | Телефон |
 | `comment` | `string` | Комментарий к заказу |
@@ -230,7 +272,8 @@ Endpoint должен:
 
 | Поле | Тип | Комментарий |
 | ---- | --- | ----------- |
-| `deliveryAddress` | `string` | Адрес доставки |
+| `deliveryAddress` | `string` | Адрес доставки; канон — `unrestricted_value` DaData |
+| `deliveryAddressFiasId` | `string` (uuid), опц. | FIAS ID для проверки / дедупликации |
 | `contactName` | `string` | Контакт |
 | `contactPhone` | `string` | Телефон |
 | `comment` | `string` | Комментарий |

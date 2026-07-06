@@ -3,7 +3,7 @@
 openapi: 3.1.0
 info:
   title: Palizh — входящая интеграция 1С → платформа
-  version: 0.2.0
+  version: 0.4.0
   summary: 'Server-to-server: HMAC, единый POST /exchange'
   description: |
     Входящие вызовы **от 1С** на API платформы (без UI). **Один эндпоинт** `POST /exchange`:
@@ -21,7 +21,7 @@ tags:
 - name: Integration 1C
   description: |
     Вызовы от 1С на API платформы (server-to-server). События каталога и справочников —
-    значения `event`: `sync.products`, `sync.counterparties`, `sync.categories`.
+    значения `event` каталога: `sync.product-attributes`, `sync.product-types`, `sync.product-type-characteristics`, `sync.products`, `sync.stocks`, `sync.prices`, `sync.categories`, `sync.counterparties` — см. `Модель_данных_каталог_1С_обмен.md`, `входящие/incoming-hooks.md`.
     Сводка: `1C_API_контракт_и_этапы.md`, `Принятые_решения_API_интеграция_1С.md`.
 paths:
   /exchange:
@@ -82,31 +82,395 @@ components:
         HMAC-SHA256 over the raw request body; format `t=<unix_ts>, v1=<hex>`. Replay window and secrets — `Интеграция_1С.md`
         §4.3. IP allowlist on platform side.
   schemas:
+    UuidString:
+      type: string
+      format: uuid
+      description: GUID сущности в 1С.
     OneCExchangeRequest:
+      description: |
+        Тело `POST /exchange`. Тип `payload` определяется полем `event` (discriminator).
+        Канон примеров — `входящие/incoming-hooks.md`; модель — `Модель_данных_каталог_1С_обмен.md`.
+      oneOf:
+        - $ref: '#/components/schemas/OneCExchangeSyncProductAttributes'
+        - $ref: '#/components/schemas/OneCExchangeSyncProductTypes'
+        - $ref: '#/components/schemas/OneCExchangeSyncProductTypeCharacteristics'
+        - $ref: '#/components/schemas/OneCExchangeSyncProducts'
+        - $ref: '#/components/schemas/OneCExchangeSyncStocks'
+        - $ref: '#/components/schemas/OneCExchangeSyncPrices'
+        - $ref: '#/components/schemas/OneCExchangeSyncCategories'
+        - $ref: '#/components/schemas/OneCExchangeSyncCounterparties'
+      discriminator:
+        propertyName: event
+        mapping:
+          sync.product-attributes: '#/components/schemas/OneCExchangeSyncProductAttributes'
+          sync.product-types: '#/components/schemas/OneCExchangeSyncProductTypes'
+          sync.product-type-characteristics: '#/components/schemas/OneCExchangeSyncProductTypeCharacteristics'
+          sync.products: '#/components/schemas/OneCExchangeSyncProducts'
+          sync.stocks: '#/components/schemas/OneCExchangeSyncStocks'
+          sync.prices: '#/components/schemas/OneCExchangeSyncPrices'
+          sync.categories: '#/components/schemas/OneCExchangeSyncCategories'
+          sync.counterparties: '#/components/schemas/OneCExchangeSyncCounterparties'
+    OneCExchangeSyncProductAttributes:
       type: object
       additionalProperties: false
-      required:
-        - event
-        - payload
+      required: [event, payload]
       properties:
         event:
           type: string
-          description: >
-            Код сценария. Зафиксировано (тимлид, MVP): `sync.products`, `sync.counterparties`, `sync.categories`.
-            Расширение перечня — по согласованию (статусы заказа, документы и т.д.).
-          enum:
-            - sync.products
-            - sync.counterparties
-            - sync.categories
+          const: sync.product-attributes
         payload:
-          description: |
-            Данные события: **массив** (типично для трёх сценариев выше) или **объект** — по согласованию.
-            Состав полей payload для `sync.*` — см. `входящие/incoming-hooks.md` (примеры товаров, контрагентов, категорий).
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductAttributeDefinition'
+    OneCExchangeSyncProductTypes:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.product-types
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductTypeItem'
+    OneCExchangeSyncProductTypeCharacteristics:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.product-type-characteristics
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductTypeCharacteristicItem'
+    OneCExchangeSyncProducts:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.products
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductItem'
+    OneCExchangeSyncStocks:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.stocks
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncStockItem'
+    OneCExchangeSyncPrices:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.prices
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncPriceItem'
+    OneCExchangeSyncCategories:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.categories
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncCategoryItem'
+    OneCExchangeSyncCounterparties:
+      type: object
+      additionalProperties: false
+      required: [event, payload]
+      properties:
+        event:
+          type: string
+          const: sync.counterparties
+        payload:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncCounterpartyItem'
+    SyncProductAttributeDefinition:
+      type: object
+      additionalProperties: false
+      required: [code, label, valueType, filterType, isFilterable, isMulti, categories]
+      properties:
+        code:
+          type: string
+          description: Уникальный код атрибута (например `worktype`, `density`).
+        label:
+          type: string
+          description: Название для витрины.
+        valueType:
+          type: string
+          enum: [string, number, bool]
+        filterType:
+          type: string
+          enum: [select, range, boolean, none]
+        unit:
+          type: ['string', 'null']
+          description: Единица измерения для отображения (например `г/см3`).
+        isFilterable:
+          type: boolean
+        isMulti:
+          type: boolean
+          description: Несколько значений одного атрибута на товаре.
+        categories:
+          type: array
+          description: GUID категорий, где атрибут актуален; `["*"]` — все категории.
+          items:
+            type: string
+        subvalueOptions:
+          type: ['object', 'null']
+          additionalProperties:
+            type: string
+          description: Словарь кодов подзначений (например для `compatibility`).
+    SyncProductTypeItem:
+      type: object
+      additionalProperties: false
+      required: [guid, name]
+      properties:
+        guid:
+          $ref: '#/components/schemas/UuidString'
+        name:
+          type: string
+    SyncProductTypeCharacteristicItem:
+      type: object
+      additionalProperties: false
+      required: [guid, typeGuid, name, isDefault, isArchived]
+      properties:
+        guid:
+          $ref: '#/components/schemas/UuidString'
+        typeGuid:
+          $ref: '#/components/schemas/UuidString'
+        name:
+          type: string
+          description: Наименование характеристики (фасовка и т.п.).
+        isDefault:
+          type: boolean
+        isArchived:
+          type: boolean
+    ProductAttributeBinding:
+      type: object
+      additionalProperties: false
+      required: [code, values]
+      properties:
+        code:
+          type: string
+        values:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ProductAttributeBindingValue'
+    ProductAttributeBindingValue:
+      type: object
+      additionalProperties: false
+      required: [value]
+      properties:
+        value:
+          description: Значение атрибута; тип согласован с `valueType` справочника.
           oneOf:
-            - type: array
-              items: {}
-            - type: object
-              additionalProperties: true
+            - type: string
+            - type: number
+            - type: boolean
+        subvalue:
+          type: string
+          description: Код подзначения (ключ из `subvalueOptions`).
+    SyncProductMarketplaceUrl:
+      type: object
+      additionalProperties: false
+      required: [type, url]
+      properties:
+        type:
+          type: string
+          description: Код маркетплейса (например `ozon`, `wb`).
+        url:
+          type: string
+          format: uri
+    SyncProductImage:
+      type: object
+      additionalProperties: false
+      required: [fileName, contentType, dataBase64]
+      properties:
+        fileName:
+          type: string
+        contentType:
+          type: string
+          example: image/jpeg
+        dataBase64:
+          type: string
+          description: Base64-содержимое файла (без data-URL префикса).
+    SyncProductItem:
+      type: object
+      additionalProperties: false
+      required: [guid, typeGuid, sku, name, attributes, isArchived]
+      properties:
+        guid:
+          $ref: '#/components/schemas/UuidString'
+        typeGuid:
+          $ref: '#/components/schemas/UuidString'
+        parentGuid:
+          oneOf:
+            - $ref: '#/components/schemas/UuidString'
+            - type: 'null'
+          description: GUID категории в 1С.
+        counterpartiesGuid:
+          oneOf:
+            - $ref: '#/components/schemas/UuidString'
+            - type: 'null'
+          description: Персональная номенклатура — GUID контрагента-владельца.
+        sku:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        description:
+          type: string
+        productionTimeDays:
+          type: integer
+          minimum: 0
+        unitsPerBox:
+          type: integer
+          minimum: 1
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductAttributeBinding'
+        marketplaceUrls:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductMarketplaceUrl'
+        isArchived:
+          type: boolean
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncProductImage'
+    SyncStockItem:
+      type: object
+      additionalProperties: false
+      required: [productGuid, characteristicGuid, stockQty]
+      properties:
+        productGuid:
+          $ref: '#/components/schemas/UuidString'
+        characteristicGuid:
+          $ref: '#/components/schemas/UuidString'
+        stockQty:
+          type: number
+          description: Остаток в базовых единицах учёта.
+    SyncPriceItem:
+      type: object
+      additionalProperties: false
+      required: [productGuid, characteristicGuid, currency, amount, priceTypeCode]
+      properties:
+        productGuid:
+          $ref: '#/components/schemas/UuidString'
+        characteristicGuid:
+          $ref: '#/components/schemas/UuidString'
+        currency:
+          type: string
+          example: RUB
+        amount:
+          type: number
+          description: Цена за единицу (штуку) для данного `priceTypeCode`.
+        amountPerBox:
+          type: ['number', 'null']
+          description: Опционально — цена за коробку в той же строке (дублирование для удобства 1С).
+        priceTypeCode:
+          type: string
+          description: Код вида цены (`RETAIL`, `WHOLESALE`, `BOX` — MVP).
+    SyncCategoryItem:
+      type: object
+      additionalProperties: false
+      required: [guid, name, isArchived]
+      properties:
+        guid:
+          $ref: '#/components/schemas/UuidString'
+        parentGuid:
+          oneOf:
+            - $ref: '#/components/schemas/UuidString'
+            - type: 'null'
+        name:
+          type: string
+        isArchived:
+          type: boolean
+        counterparties:
+          $ref: '#/components/schemas/UuidString'
+          description: Опционально — категория персонального ассортимента контрагента.
+    SyncCounterpartyDiscountItem:
+      type: object
+      additionalProperties: false
+      required: [productGuid, characteristicGuid, price]
+      properties:
+        productGuid:
+          $ref: '#/components/schemas/UuidString'
+        characteristicGuid:
+          $ref: '#/components/schemas/UuidString'
+        price:
+          type: number
+        priceBox:
+          type: number
+          description: Персональная цена за коробку.
+    SyncCounterpartyPaymentTerms:
+      type: object
+      additionalProperties: false
+      properties:
+        priceTypeCode:
+          type: string
+        paymentMode:
+          type: string
+          description: Например `postpayment`.
+        defermentDays:
+          type: integer
+          minimum: 0
+        creditLimit:
+          type: number
+        hasPostpayAccess:
+          type: boolean
+        discountPercent:
+          type: number
+          description: Персональная скидка на розничную цену (`RETAIL`).
+        discounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncCounterpartyDiscountItem'
+    SyncCounterpartyItem:
+      type: object
+      additionalProperties: false
+      required: [guid, name]
+      properties:
+        guid:
+          $ref: '#/components/schemas/UuidString'
+        name:
+          type: string
+        inn:
+          type: string
+        kpp:
+          type: string
+        legalAddress:
+          type: string
+        registrationRequestGuid:
+          $ref: '#/components/schemas/UuidString'
+          description: Связь с заявкой на регистрацию на платформе.
+        paymentTerms:
+          $ref: '#/components/schemas/SyncCounterpartyPaymentTerms'
     ExchangeAcceptedResponse:
       type: object
       additionalProperties: false

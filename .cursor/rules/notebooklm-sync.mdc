@@ -1,0 +1,17 @@
+---
+description: При запросе обновить блокнот NotebookLM проекта Palizh — использовать NOTEBOOK_TARGET и sync_notebooklm.sh
+alwaysApply: false
+---
+
+# Синхронизация блокнота NotebookLM (Palizh)
+
+- Идентификатор блокнота и человекочитаемое название хранятся в **`export/notebooklm/NOTEBOOK_TARGET`** (`NOTEBOOK_ID`, `NOTEBOOK_TITLE`). При создании другого блокнота обновить этот файл.
+
+- По запросу пользователя вида «обнови блокнот NotebookLM», «синхронизируй Palizh с NotebookLM», **`/notebooklm` + обновить источники** и т.п.:
+
+  1. Убедиться, что авторизация CLI действует при необходимости: подсказать `notebooklm auth check` / `notebooklm login`.
+  2. Из **корня репозитория Palizh** выполнить: **`bash tools/sync_notebooklm.sh`** или **`./tools/sync_notebooklm.sh`**.
+
+     Алгоритм скрипта: `ruby tools/build_notebooklm_bundle.rb` → для каждого источника в блокноте `notebooklm source delete … -y` → добавить каждый **`*.md`** из `export/notebooklm/bundle/` (**включая 09–12** с OpenAPI в fenced `yaml`; соседние **`*.yaml`** в блокнот не грузятся). Не добавлять сырые папки репозитория без сборки.
+
+- Переменная **`NOTEBOOKLM`** может переопределить путь к бинарнику (если CLI не в `PATH`).

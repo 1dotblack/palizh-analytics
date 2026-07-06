@@ -1,8 +1,32 @@
 # Маппинг полей API ↔ 1С
 
-Рабочий документ для сопоставления полей платформенного API (**публичный** — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml); **1С → платформа** — [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml)) с объектами и реквизитами 1С ERP 2.5.22. Сводка файлов — [`OpenAPI_индекс.md`](OpenAPI_индекс.md).
+Рабочий документ для сопоставления полей платформенного API (**публичный канон стенда** — [`public-http-openapi.yaml`](public-http-openapi.yaml); **продуктовый черновик** — [`openapi_client_mvp.yaml`](openapi_client_mvp.yaml), **устарел для MVP**, см. [`OpenAPI_индекс.md`](OpenAPI_индекс.md); **1С → платформа** — [`openapi_1c_inbound_mvp.yaml`](openapi_1c_inbound_mvp.yaml)) с объектами и реквизитами 1С ERP 2.5.22.
 
-**Входящие вызовы 1С → платформа** (импорт, события): см. [`openapi_mvp_integration_1c.md`](openapi_mvp_integration_1c.md) и `POST /exchange` в `openapi_1c_inbound_mvp.yaml` (`OneCExchangeRequest`: `event` + `payload`). Маппинг **поля** `payload` по каждому `event` (`sync.*` и др.) дополняется по мере согласования с 1С.
+**Входящие вызовы 1С → платформа** (импорт, события): см. [`openapi_mvp_integration_1c.md`](openapi_mvp_integration_1c.md) и `POST /exchange` в `openapi_1c_inbound_mvp.yaml` (`OneCExchangeRequest`: `event` + `payload`). Маппинг **поля** `payload` по каждому `event` дополняется по мере согласования с 1С.
+
+### Каталог: события и сущности (канон GitLab / стенд, 2026-06-02)
+
+Модель: [`Модель_данных_каталог_1С_обмен.md`](Модель_данных_каталог_1С_обмен.md). Примеры JSON: `входящие/incoming-hooks.md`.
+
+| `event` | Логическая таблица 1С | Ключевые поля JSON |
+|---------|----------------------|-------------------|
+| `sync.product-attributes` | Справочник атрибутов | `code`, `label`, `valueType`, `filterType`, `unit`, `isFilterable`, `isMulti`, `categories`, `subvalueOptions` |
+| `sync.product-types` | ВидыНоменклатуры | `guid`, `name` |
+| `sync.product-type-characteristics` | ХарактеристикиНоменклатуры | `guid`, `typeGuid`, `name`, `isDefault`, `isArchived`, опц. `ral`, `hex` |
+| `sync.products` | Товары (Products) | `guid`, `parentGuid`, `typeGuid`, `sku`, `name`, `brand`, `description`, **`attributes[]`**, `unitsPerBox`, `isArchived`, `marketplaceUrls`, `counterpartiesGuid`, `images[]`, `productionTimeDays` |
+| `sync.stocks` | Остатки | `productGuid`, `characteristicGuid`, `stockQty` |
+| `sync.prices` | Цены | `productGuid`, `characteristicGuid`, `currency`, `amount`, `amountPerBox`, `priceTypeCode` (`RETAIL`, `WHOLESALE`, `BOX` — см. модель) |
+| `sync.categories` | Категории витрины | `guid`, `parentGuid`, `name`, `isArchived` |
+| `sync.counterparties` | Контрагенты | см. `incoming-hooks.md` |
+
+**Устарело:** `sync.item_types`, `sync.characteristics`, `sync.stock`; `itemTypeGuid`; `sync.products` с массивом **`variants[]`**.
+
+### Разные имена одного поля (inbound ↔ публичный API)
+
+| Смысл | Inbound (`sync.products`, hooks) | Платформа / публичный API | Примечание |
+|-------|----------------------------------|---------------------------|------------|
+| Персональная номенклатура (только один контрагент) | **`counterpartiesGuid`** | **`exclusiveCounterpartyGuid`** | В `public-http-openapi.yaml` поле может появиться при расширении схемы; семантика — ЧТЗ 06 §4.2.2 |
+| Тип номенклатуры | **`typeGuid`** | — (внутренняя связь) | Не путать с `itemTypeGuid` (устарело) |
 
 ## Как работать с этим документом
 
@@ -11,7 +35,7 @@
 3. **1С-разработчик** проверяет каждую строку в тестовом контуре 1С, вписывает реальные имена полей, типы и меняет статус.
 4. По результатам обновляем соответствующий YAML (`openapi_client_mvp.yaml` и/или `openapi_1c_inbound_mvp.yaml`) и закрываем вопросы в `Реестр_открытых_вопросов.md`.
 
-**Импорт каталога (согласование с заказчиком):** выгрузку **инициирует 1С**; **отдельной** реализации «полной выгрузки» **нет** — **тот же** инкрементальный механизм, при первичной заливке — **последовательно**; в работе — дельты; **не** предполагается «опрос» каталога с платформы по расписанию. См. `POST /exchange` (`event`: `sync.products`, `sync.categories` и т.д.), ЧТЗ 09 §4.1.
+**Импорт каталога (согласование с заказчиком):** выгрузку **инициирует 1С**; при первичной заливке — **последовательные** пакеты (`sync.product-attributes` → … → `sync.prices`); далее — дельты. См. ЧТЗ 09 §4.1 и таблицу событий выше.
 
 **Статусы:**
 
@@ -84,7 +108,7 @@
 | isArchived | boolean | да | Справочник.Номенклатура | ? | ? | Каким полем передаётся архивность? ПометкаУдаления? Доп. реквизит? | ? |
 | isAvailableForOrder | boolean | да | — | — | — | Расчётное: !isArchived и остаток > 0 | — |
 | availability | ProductAvailability | да | — | — | — | Вложенный объект, см. 2.4 | — |
-| marketplaceUrl | string ǀ null | нет | Справочник.Номенклатура | Доп. реквизит? | Строка | Одна ссылка на маркетплейс; есть ли поле? | ? |
+| marketplaceUrl | string ǀ null | нет | Справочник.Номенклатура | Доп. реквизит? | Строка | Публичное API карточки: одна ссылка или вывод из массива. **Импорт из 1С:** в каноне `входящие/incoming-hooks.md` для `sync.products` используется массив **`marketplaceUrls`** (`type` + `url`, например ozon/wb) — согласовать маппинг с фактической выгрузкой 1С. | ? |
 | price | ProductPrice ǀ null | нет | — | — | — | null для гостей; вложенный объект для авторизованных, см. 2.5 | — |
 | exclusiveCounterpartyGuid | string (uuid) ǀ null | нет | Справочник.Номенклатура или связанный реквизит | `GUID` единственного контрагента, для кого товар; `null` — общий каталог | UUID / null | **Заказчик 2026-04:** видимость и покупка только у совпавшей компании; не путать с «номенклатурой контрагента» (коды клиента), см. глоссарий | ? |
 
@@ -182,7 +206,7 @@
 
 ### 4.1 CartItem
 
-Строка корзины. Данные по товару берутся из ProductCardSummary (см. 2.1), здесь — ценовые/количественные поля.
+Строка корзины. Данные по товару — из ProductCardSummary (см. 2.1); расчёт цены — **ЧТЗ 01 §4.2.4** (вариант A).
 
 | API поле | Тип API | Обяз. | 1С Объект | 1С Поле | Тип 1С | Трансформация | Статус |
 | -- | -- | -- | -- | -- | -- | -- | -- |
@@ -190,8 +214,12 @@
 | product | ProductCardSummary | да | — | — | — | Вложенный объект, см. 2.1 | — |
 | quantity | number | да | — | — | — | Вводит пользователь | — |
 | unit | string | да | Справочник.Номенклатура | ЕдиницаИзмерения | Справочник | Как получить строковое представление (шт, кг, л)? | ? |
-| unitPrice | number | да | РегистрСведений.ЦеныНоменклатуры? | Цена | Число | Цена за единицу с учётом скидки | ? |
-| lineTotal | number | да | — | — | — | Расчёт: quantity × unitPrice на платформе | — |
+| unitPrice | number | да | — | — | — | **Средняя** за ед.: `round(lineTotal / quantity, 2)`; для UI | — |
+| lineTotal | number | да | — | — | — | `round(fullBoxesCount × pricePerBox, 2) + round(remainderQuantity × pricePerPiece, 2)`; `pricePerBox`/`pricePerPiece` из `amount*` / `discountedAmount*` | — |
+| packagingMode | string | нет | — | — | — | `multiple` / `mixed` / `non_multiple` / `not_applicable` | — |
+| fullBoxesCount | integer | нет | — | — | — | `floor(quantity / unitsPerBox)` | — |
+| remainderQuantity | number | нет | — | — | — | Остаток штук вне полных упаковок | — |
+| unitsPerBox | integer ǀ null | нет | Справочник.Номенклатура | НаборУпаковок | Число | Из `sync.products` | ≈ |
 | availability | ProductAvailability | да | — | — | — | Актуальные остатки на момент корзины | — |
 
 ### 4.2 CartTotals
@@ -222,7 +250,7 @@
 
 | API поле | Тип API | Обяз. | 1С Объект | 1С Поле | Тип 1С | Трансформация | Статус |
 | -- | -- | -- | -- | -- | -- | -- | -- |
-| deliveryAddress | string | да | Документ.ЗаказКлиента | ? | Строка | В какое поле записывать адрес? | ? |
+| deliveryAddress | string | да | Документ.ЗаказКлиента | ? | Строка | Одна строка; канон с платформы — `unrestricted_value` DaData (ЧТЗ 01 §4.1.2). В какое поле 1С записывать — уточнить | ? |
 | contactName | string | да | Документ.ЗаказКлиента | ? | Строка | Контактное лицо | ? |
 | contactPhone | string | да | Документ.ЗаказКлиента | ? | Строка | Телефон контакта | ? |
 | comment | string | нет | Документ.ЗаказКлиента | Комментарий | Строка | Стандартное поле? | ≈ |

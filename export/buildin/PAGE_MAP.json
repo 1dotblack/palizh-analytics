@@ -1,0 +1,705 @@
+{
+  "last_sync": "2026-06-30T09:31:38Z",
+  "git_rev": "ad4c899",
+  "root_page_id": "dd988cac-7a50-4f87-8d96-23a166f9d54b",
+  "sections": {
+    "01_о_проекте": {
+      "page_id": "e1f6afe6-3043-42b0-875e-02bec7b8af1c",
+      "url": "https://buildin.ai/e1f6afe6-3043-42b0-875e-02bec7b8af1c",
+      "title": "О проекте",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "02_чтз": {
+      "page_id": "8ed6805e-e8f0-45de-838c-d354c0c24945",
+      "url": "https://buildin.ai/8ed6805e-e8f0-45de-838c-d354c0c24945",
+      "title": "ЧТЗ",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "03_понимание": {
+      "page_id": "f955d9a0-6ec2-4668-bf81-25690d59c63c",
+      "url": "https://buildin.ai/f955d9a0-6ec2-4668-bf81-25690d59c63c",
+      "title": "Понимание задачи",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "04_инфарх": {
+      "page_id": "dc2c0945-cf1b-4f14-94b8-daf81e7bc7b1",
+      "url": "https://buildin.ai/dc2c0945-cf1b-4f14-94b8-daf81e7bc7b1",
+      "title": "Инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "05_uscases": {
+      "page_id": "977f022c-1a63-45a3-a688-921e50425141",
+      "url": "https://buildin.ai/977f022c-1a63-45a3-a688-921e50425141",
+      "title": "USCases и роли",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "06_тех_архитектура": {
+      "page_id": "d6d351fd-f25a-47e1-a077-af5020c3ce9f",
+      "url": "https://buildin.ai/d6d351fd-f25a-47e1-a077-af5020c3ce9f",
+      "title": "Техническая часть — архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "07_тех_1с": {
+      "page_id": "a4871e23-cff7-4d40-b530-261e97075c71",
+      "url": "https://buildin.ai/a4871e23-cff7-4d40-b530-261e97075c71",
+      "title": "Техническая часть — 1С и контракты",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "08_openapi_пояснения": {
+      "page_id": "8f9fa949-bfbe-41a9-9ace-256d1fb3b458",
+      "url": "https://buildin.ai/8f9fa949-bfbe-41a9-9ace-256d1fb3b458",
+      "title": "OpenAPI — пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "09_openapi_yaml": {
+      "page_id": "32b2c53e-3fb1-4ea6-8bb0-54a6874c1cca",
+      "url": "https://buildin.ai/32b2c53e-3fb1-4ea6-8bb0-54a6874c1cca",
+      "title": "OpenAPI — спецификации",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "10_интервью": {
+      "page_id": "384a5704-1ab2-401b-9d14-1c9cf3fa7092",
+      "url": "https://buildin.ai/384a5704-1ab2-401b-9d14-1c9cf3fa7092",
+      "title": "Интервью и встречи",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "11_входящие": {
+      "page_id": "af06d54a-c9bc-4b79-bb7c-8ae216f00f51",
+      "url": "https://buildin.ai/af06d54a-c9bc-4b79-bb7c-8ae216f00f51",
+      "title": "Входящие webhooks",
+      "synced_at": "2026-06-29T11:04:42Z"
+    }
+  },
+  "documents": {
+    "README.md": {
+      "page_id": "0e29fa5c-6846-442a-ba0a-a3dc5819ad7e",
+      "url": "https://buildin.ai/0e29fa5c-6846-442a-ba0a-a3dc5819ad7e",
+      "title": "README репозитория",
+      "section": "01_о_проекте",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/Оглавление.md": {
+      "page_id": "781d2c81-654c-4748-9140-b142e9a333b4",
+      "url": "https://buildin.ai/781d2c81-654c-4748-9140-b142e9a333b4",
+      "title": "Оглавление",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/Глоссарий.md": {
+      "page_id": "cdd22e85-602d-45f8-854e-e2f8262f7653",
+      "url": "https://buildin.ai/cdd22e85-602d-45f8-854e-e2f8262f7653",
+      "title": "Глоссарий",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/Матрица_статусов_и_источников.md": {
+      "page_id": "1f452b5d-ede6-4a18-85e0-6f073553a3f1",
+      "url": "https://buildin.ai/1f452b5d-ede6-4a18-85e0-6f073553a3f1",
+      "title": "Матрица_статусов_и_источников",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/Сводка_онбординг_и_идентификаторы.md": {
+      "page_id": "bd8567e6-ec39-463b-a435-a6cd1ea7e649",
+      "url": "https://buildin.ai/bd8567e6-ec39-463b-a435-a6cd1ea7e649",
+      "title": "Сводка_онбординг_и_идентификаторы",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/01_процесс_оформления_заказа.md": {
+      "page_id": "2fc83a8a-9d93-406c-9154-c6646e09c3c4",
+      "url": "https://buildin.ai/2fc83a8a-9d93-406c-9154-c6646e09c3c4",
+      "title": "01_процесс_оформления_заказа",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/02_документооборот.md": {
+      "page_id": "bed6c887-8474-4fe5-95d1-df6cbb5b8473",
+      "url": "https://buildin.ai/bed6c887-8474-4fe5-95d1-df6cbb5b8473",
+      "title": "02_документооборот",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/03_доставка.md": {
+      "page_id": "d3a7dbca-2af2-4af3-9c85-62b9b3b7dee6",
+      "url": "https://buildin.ai/d3a7dbca-2af2-4af3-9c85-62b9b3b7dee6",
+      "title": "03_доставка",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/04_претензии.md": {
+      "page_id": "dcd1ea85-be96-471b-a559-25b0b4a7051d",
+      "url": "https://buildin.ai/dcd1ea85-be96-471b-a559-25b0b4a7051d",
+      "title": "04_претензии",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/05_регистрация_онбординг.md": {
+      "page_id": "9518c283-441b-4e16-89e4-c5a74817914d",
+      "url": "https://buildin.ai/9518c283-441b-4e16-89e4-c5a74817914d",
+      "title": "05_регистрация_онбординг",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/06_витрина_каталог.md": {
+      "page_id": "e2cd0be2-77fc-4704-b063-f9efcdd32b99",
+      "url": "https://buildin.ai/e2cd0be2-77fc-4704-b063-f9efcdd32b99",
+      "title": "06_витрина_каталог",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/07_ЛК_профиль_компания.md": {
+      "page_id": "4f37965a-c5d2-4614-b649-76724350c71a",
+      "url": "https://buildin.ai/4f37965a-c5d2-4614-b649-76724350c71a",
+      "title": "07_ЛК_профиль_компания",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/08_ЛК_заказы_статусы.md": {
+      "page_id": "d8240924-a5a9-45a4-85b0-789c4e0a9f98",
+      "url": "https://buildin.ai/d8240924-a5a9-45a4-85b0-789c4e0a9f98",
+      "title": "08_ЛК_заказы_статусы",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/09_интеграция_1С.md": {
+      "page_id": "61a48773-1035-413c-b14b-3ca744b4b812",
+      "url": "https://buildin.ai/61a48773-1035-413c-b14b-3ca744b4b812",
+      "title": "09_интеграция_1С",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/10_уведомления.md": {
+      "page_id": "48679da7-a750-47df-bfea-2d4aada6ee9d",
+      "url": "https://buildin.ai/48679da7-a750-47df-bfea-2d4aada6ee9d",
+      "title": "10_уведомления",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/11_поиск.md": {
+      "page_id": "5d9432e8-8da9-4b04-8d24-7d54d68ccc42",
+      "url": "https://buildin.ai/5d9432e8-8da9-4b04-8d24-7d54d68ccc42",
+      "title": "11_поиск",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/12_система_управления.md": {
+      "page_id": "72758d83-186b-434f-9171-2874db1aa0a1",
+      "url": "https://buildin.ai/72758d83-186b-434f-9171-2874db1aa0a1",
+      "title": "12_система_управления",
+      "section": "02_чтз",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Понимание задачи/Понимание_задачи.md": {
+      "page_id": "4811da06-146b-4d14-9be4-631c70f06125",
+      "url": "https://buildin.ai/4811da06-146b-4d14-9be4-631c70f06125",
+      "title": "Понимание_задачи",
+      "section": "03_понимание",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Инфарх/видение-и-границы.md": {
+      "page_id": "9f1280dd-9901-4784-b6d7-b9342e159d1b",
+      "url": "https://buildin.ai/9f1280dd-9901-4784-b6d7-b9342e159d1b",
+      "title": "видение-и-границы",
+      "section": "04_инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Инфарх/информационная-архитектура.md": {
+      "page_id": "bbb750aa-757b-4c13-b88c-b28944363d13",
+      "url": "https://buildin.ai/bbb750aa-757b-4c13-b88c-b28944363d13",
+      "title": "информационная-архитектура",
+      "section": "04_инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Инфарх/обучение-и-образовательные-активности.md": {
+      "page_id": "0b85070d-d37c-4bb1-a40a-08a9733ef806",
+      "url": "https://buildin.ai/0b85070d-d37c-4bb1-a40a-08a9733ef806",
+      "title": "обучение-и-образовательные-активности",
+      "section": "04_инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Инфарх/состав-и-задачи-страниц.md": {
+      "page_id": "fb2030dd-4cda-4e6e-a81c-ea0adce27d19",
+      "url": "https://buildin.ai/fb2030dd-4cda-4e6e-a81c-ea0adce27d19",
+      "title": "состав-и-задачи-страниц",
+      "section": "04_инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Инфарх/структура-страниц.md": {
+      "page_id": "f7e35236-61a7-453a-9fa6-5696be88722f",
+      "url": "https://buildin.ai/f7e35236-61a7-453a-9fa6-5696be88722f",
+      "title": "структура-страниц",
+      "section": "04_инфарх",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/README.md": {
+      "page_id": "5994cd38-c017-4eea-97bf-9ed0f4594482",
+      "url": "https://buildin.ai/5994cd38-c017-4eea-97bf-9ed0f4594482",
+      "title": "README",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/00_матрица_ролей_и_зон_ответственности.md": {
+      "page_id": "837303eb-6d87-43a0-8791-cc62b3fb1685",
+      "url": "https://buildin.ai/837303eb-6d87-43a0-8791-cc62b3fb1685",
+      "title": "00_матрица_ролей_и_зон_ответственности",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/01_сквозные_mvp_сценарии.md": {
+      "page_id": "bf8b270f-7e51-401b-96d3-61206241af43",
+      "url": "https://buildin.ai/bf8b270f-7e51-401b-96d3-61206241af43",
+      "title": "01_сквозные_mvp_сценарии",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/03_покрытие_инфарха.md": {
+      "page_id": "ee54a88b-a16a-4166-8c2a-2b29b0db7d9e",
+      "url": "https://buildin.ai/ee54a88b-a16a-4166-8c2a-2b29b0db7d9e",
+      "title": "03_покрытие_инфарха",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/сценарии_авторизация_и_регистрация.md": {
+      "page_id": "24ab9cd4-00bf-4eb9-bd47-afdf8c4ed2cf",
+      "url": "https://buildin.ai/24ab9cd4-00bf-4eb9-bd47-afdf8c4ed2cf",
+      "title": "сценарии_авторизация_и_регистрация",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/README.md": {
+      "page_id": "6d62dad8-afaa-480e-b7b9-05792aece047",
+      "url": "https://buildin.ai/6d62dad8-afaa-480e-b7b9-05792aece047",
+      "title": "README",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_01_регистрация_активация_первый_вход.md": {
+      "page_id": "916e683b-ae28-48e4-bdca-1569d3bffa5a",
+      "url": "https://buildin.ai/916e683b-ae28-48e4-bdca-1569d3bffa5a",
+      "title": "поток_01_регистрация_активация_первый_вход",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_02_вход_восстановление_пароля.md": {
+      "page_id": "8f4e5c29-2680-4d38-98d0-5231c508c5d8",
+      "url": "https://buildin.ai/8f4e5c29-2680-4d38-98d0-5231c508c5d8",
+      "title": "поток_02_вход_восстановление_пароля",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_03_каталог_поиск_карточка.md": {
+      "page_id": "0f7729e7-8cf0-4a97-8ba8-e4ec489a5c9e",
+      "url": "https://buildin.ai/0f7729e7-8cf0-4a97-8ba8-e4ec489a5c9e",
+      "title": "поток_03_каталог_поиск_карточка",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_04_корзина_оформление_заказа.md": {
+      "page_id": "2dabea43-3613-4e5e-91db-78cf13c23b65",
+      "url": "https://buildin.ai/2dabea43-3613-4e5e-91db-78cf13c23b65",
+      "title": "поток_04_корзина_оформление_заказа",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_05_документы_акт_сверки.md": {
+      "page_id": "877622bb-a89b-4e21-ad7a-9f4ba61b8b77",
+      "url": "https://buildin.ai/877622bb-a89b-4e21-ad7a-9f4ba61b8b77",
+      "title": "поток_05_документы_акт_сверки",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_06_претензия_mvp.md": {
+      "page_id": "7fd88d81-1e8a-4ba5-aef6-163e2886652b",
+      "url": "https://buildin.ai/7fd88d81-1e8a-4ba5-aef6-163e2886652b",
+      "title": "поток_06_претензия_mvp",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_07_нестандартная_заявка.md": {
+      "page_id": "bddad978-db61-4fce-8a7a-1cb75a2a097d",
+      "url": "https://buildin.ai/bddad978-db61-4fce-8a7a-1cb75a2a097d",
+      "title": "поток_07_нестандартная_заявка",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_08_обучение_заявка.md": {
+      "page_id": "ab987d08-3ce6-42e6-bdc4-5ea95bcffc36",
+      "url": "https://buildin.ai/ab987d08-3ce6-42e6-bdc4-5ea95bcffc36",
+      "title": "поток_08_обучение_заявка",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/потоки_для_дизайна/поток_09_админка_поддержка.md": {
+      "page_id": "53be359b-a016-4621-af15-f7b82369467d",
+      "url": "https://buildin.ai/53be359b-a016-4621-af15-f7b82369467d",
+      "title": "поток_09_админка_поддержка",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_бухгалтер.md": {
+      "page_id": "4cea5be4-b992-4ef6-95ec-9200f8dd59d8",
+      "url": "https://buildin.ai/4cea5be4-b992-4ef6-95ec-9200f8dd59d8",
+      "title": "роль_бухгалтер",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_гость_витрина.md": {
+      "page_id": "f795e6a6-bfcf-407e-9942-1a33aa3b8cf7",
+      "url": "https://buildin.ai/f795e6a6-bfcf-407e-9942-1a33aa3b8cf7",
+      "title": "роль_гость_витрина",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_директор_лпр.md": {
+      "page_id": "4423647a-2a9a-4be1-80f8-ddb9c80e0f81",
+      "url": "https://buildin.ai/4423647a-2a9a-4be1-80f8-ddb9c80e0f81",
+      "title": "роль_директор_лпр",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_закупщик.md": {
+      "page_id": "4f52a8ba-50b3-432d-a7a5-03ebdf65c0e0",
+      "url": "https://buildin.ai/4f52a8ba-50b3-432d-a7a5-03ebdf65c0e0",
+      "title": "роль_закупщик",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_контент_менеджер.md": {
+      "page_id": "0079fd99-ccc7-43d6-bbc5-0fe439c37512",
+      "url": "https://buildin.ai/0079fd99-ccc7-43d6-bbc5-0fe439c37512",
+      "title": "роль_контент_менеджер",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_мастер_аккаунт_клиента.md": {
+      "page_id": "5d7a4095-ea3f-44d9-850c-13e22bad55fd",
+      "url": "https://buildin.ai/5d7a4095-ea3f-44d9-850c-13e22bad55fd",
+      "title": "роль_мастер_аккаунт_клиента",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_менеджер_сопровождения.md": {
+      "page_id": "1c843c3f-9004-44c6-8bbd-b11a7d43db75",
+      "url": "https://buildin.ai/1c843c3f-9004-44c6-8bbd-b11a7d43db75",
+      "title": "роль_менеджер_сопровождения",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_оператор_админки.md": {
+      "page_id": "016a86be-0b2e-419a-9fbf-2892d22dd913",
+      "url": "https://buildin.ai/016a86be-0b2e-419a-9fbf-2892d22dd913",
+      "title": "роль_оператор_админки",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_поддержка_оператор.md": {
+      "page_id": "cdaccbf8-a628-48b5-990d-8f1c35d0b6d5",
+      "url": "https://buildin.ai/cdaccbf8-a628-48b5-990d-8f1c35d0b6d5",
+      "title": "роль_поддержка_оператор",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "uscases/роль_суперадмин.md": {
+      "page_id": "d2461d3a-dfd6-45ce-bada-81802be47eba",
+      "url": "https://buildin.ai/d2461d3a-dfd6-45ce-bada-81802be47eba",
+      "title": "роль_суперадмин",
+      "section": "05_uscases",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Архитектура_платформы.md": {
+      "page_id": "ce331f94-9cdc-4093-a067-77767fdd5f58",
+      "url": "https://buildin.ai/ce331f94-9cdc-4093-a067-77767fdd5f58",
+      "title": "Архитектура_платформы",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Backend_архитектура.md": {
+      "page_id": "07c9c96d-6e8b-4176-b701-600e3cd6ae42",
+      "url": "https://buildin.ai/07c9c96d-6e8b-4176-b701-600e3cd6ae42",
+      "title": "Backend_архитектура",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Backend_план_работ_MVP.md": {
+      "page_id": "f582499e-e7d3-4cf6-aacd-6c35949003a9",
+      "url": "https://buildin.ai/f582499e-e7d3-4cf6-aacd-6c35949003a9",
+      "title": "Backend_план_работ_MVP",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Backend_готовность_MVP_матрица.md": {
+      "page_id": "17a17eaa-e4fc-4203-be92-a7b099c050ea",
+      "url": "https://buildin.ai/17a17eaa-e4fc-4203-be92-a7b099c050ea",
+      "title": "Backend_готовность_MVP_матрица",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Frontend_архитектура.md": {
+      "page_id": "16628faf-7039-41b5-b990-ac743303592f",
+      "url": "https://buildin.ai/16628faf-7039-41b5-b990-ac743303592f",
+      "title": "Frontend_архитектура",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Техстек_общий.md": {
+      "page_id": "7daaaacd-10cb-46a9-bd2b-e514e3b3787f",
+      "url": "https://buildin.ai/7daaaacd-10cb-46a9-bd2b-e514e3b3787f",
+      "title": "Техстек_общий",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Нефункциональные_требования.md": {
+      "page_id": "1726f227-04a3-4b31-bfdd-d1565744aba3",
+      "url": "https://buildin.ai/1726f227-04a3-4b31-bfdd-d1565744aba3",
+      "title": "Нефункциональные_требования",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Инфраструктура_и_CI-CD.md": {
+      "page_id": "a6eed7f7-81f3-4cbd-b69d-3f2bd238f37a",
+      "url": "https://buildin.ai/a6eed7f7-81f3-4cbd-b69d-3f2bd238f37a",
+      "title": "Инфраструктура_и_CI-CD",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Наблюдаемость_и_логи.md": {
+      "page_id": "e51340b3-f105-4e2d-b566-0eeb5575b0e1",
+      "url": "https://buildin.ai/e51340b3-f105-4e2d-b566-0eeb5575b0e1",
+      "title": "Наблюдаемость_и_логи",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/admin_role_and_routing_matrix.md": {
+      "page_id": "801f3300-e35c-4780-acbf-fa739344384b",
+      "url": "https://buildin.ai/801f3300-e35c-4780-acbf-fa739344384b",
+      "title": "admin_role_and_routing_matrix",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Интеграция_1С.md": {
+      "page_id": "5a3e5fa6-f35b-4536-ad9c-d843221bd6b0",
+      "url": "https://buildin.ai/5a3e5fa6-f35b-4536-ad9c-d843221bd6b0",
+      "title": "Интеграция_1С",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Модель_данных_каталог_1С_обмен.md": {
+      "page_id": "799e6798-0369-4fd6-99bb-527d559466fb",
+      "url": "https://buildin.ai/799e6798-0369-4fd6-99bb-527d559466fb",
+      "title": "Модель_данных_каталог_1С_обмен",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/1C_API_контракт_и_этапы.md": {
+      "page_id": "9d82973c-f989-4a5f-9dda-780bb9d2326c",
+      "url": "https://buildin.ai/9d82973c-f989-4a5f-9dda-780bb9d2326c",
+      "title": "1C_API_контракт_и_этапы",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Задание_1С_разработчику.md": {
+      "page_id": "633c1236-75b0-4b66-9f98-e1f387202aa6",
+      "url": "https://buildin.ai/633c1236-75b0-4b66-9f98-e1f387202aa6",
+      "title": "Задание_1С_разработчику",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Маппинг_API_1С.md": {
+      "page_id": "7ca5484a-f2ea-4ef0-9495-65dfe725dead",
+      "url": "https://buildin.ai/7ca5484a-f2ea-4ef0-9495-65dfe725dead",
+      "title": "Маппинг_API_1С",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Принятые_решения_API_интеграция_1С.md": {
+      "page_id": "de3eb902-b838-4b95-9888-a8acd0520a92",
+      "url": "https://buildin.ai/de3eb902-b838-4b95-9888-a8acd0520a92",
+      "title": "Принятые_решения_API_интеграция_1С",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/1С_contract_matrix.md": {
+      "page_id": "094a4e48-b4f3-4efc-aeda-6b194043b378",
+      "url": "https://buildin.ai/094a4e48-b4f3-4efc-aeda-6b194043b378",
+      "title": "1С_contract_matrix",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/order_lifecycle_contract.md": {
+      "page_id": "12d7a89d-6812-4e28-8422-9631bee9f381",
+      "url": "https://buildin.ai/12d7a89d-6812-4e28-8422-9631bee9f381",
+      "title": "order_lifecycle_contract",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/document_delivery_contract.md": {
+      "page_id": "2dca4213-43eb-42ef-af3a-2261f3f96685",
+      "url": "https://buildin.ai/2dca4213-43eb-42ef-af3a-2261f3f96685",
+      "title": "document_delivery_contract",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Email_уведомления_MVP_регламент_и_переменные.md": {
+      "page_id": "737eb052-c579-4b84-800a-0b5cf7e2907a",
+      "url": "https://buildin.ai/737eb052-c579-4b84-800a-0b5cf7e2907a",
+      "title": "Email_уведомления_MVP_регламент_и_переменные",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Задание_разработчику_админка_MVP.md": {
+      "page_id": "8980f5ab-82de-42c4-bdf5-feb384ec60ef",
+      "url": "https://buildin.ai/8980f5ab-82de-42c4-bdf5-feb384ec60ef",
+      "title": "Задание_разработчику_админка_MVP",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/Форма_претензии_UI_API.md": {
+      "page_id": "24d3582d-4de5-4936-b997-e89f97f687a3",
+      "url": "https://buildin.ai/24d3582d-4de5-4936-b997-e89f97f687a3",
+      "title": "Форма_претензии_UI_API",
+      "section": "07_тех_1с",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/OpenAPI_индекс.md": {
+      "page_id": "23776cd7-d087-42fc-85b9-90f127385987",
+      "url": "https://buildin.ai/23776cd7-d087-42fc-85b9-90f127385987",
+      "title": "OpenAPI_индекс",
+      "section": "08_openapi_пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_auth_onboarding.md": {
+      "page_id": "4fc634f7-c497-4c52-aa3b-67337b7bcd37",
+      "url": "https://buildin.ai/4fc634f7-c497-4c52-aa3b-67337b7bcd37",
+      "title": "openapi_mvp_auth_onboarding",
+      "section": "08_openapi_пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_catalog_product.md": {
+      "page_id": "6435d7b2-d935-4892-97a3-b7f0a72663d2",
+      "url": "https://buildin.ai/6435d7b2-d935-4892-97a3-b7f0a72663d2",
+      "title": "openapi_mvp_catalog_product",
+      "section": "08_openapi_пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_cart_checkout_orders.md": {
+      "page_id": "e222d042-1bdd-4a59-b417-6fd2f2363f56",
+      "url": "https://buildin.ai/e222d042-1bdd-4a59-b417-6fd2f2363f56",
+      "title": "openapi_mvp_cart_checkout_orders",
+      "section": "08_openapi_пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_integration_1c.md": {
+      "page_id": "da272f17-bee4-4d67-8f8c-98f36c58263f",
+      "url": "https://buildin.ai/da272f17-bee4-4d67-8f8c-98f36c58263f",
+      "title": "openapi_mvp_integration_1c",
+      "section": "08_openapi_пояснения",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_merged.yaml": {
+      "page_id": "0c139560-0456-4681-9c6a-b29cf37d2ac4",
+      "url": "https://buildin.ai/0c139560-0456-4681-9c6a-b29cf37d2ac4",
+      "title": "OpenAPI MVP merged (клиент + 1С inbound)",
+      "section": "09_openapi_yaml",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/public-http-openapi.yaml": {
+      "page_id": "bbbad243-0726-4ea7-8096-fcb23fcdf6ab",
+      "url": "https://buildin.ai/bbbad243-0726-4ea7-8096-fcb23fcdf6ab",
+      "title": "Публичный HTTP API",
+      "section": "09_openapi_yaml",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/1c-http-openapi.yaml": {
+      "page_id": "26c810f9-9059-41e4-8c57-bbfd0c3412e5",
+      "url": "https://buildin.ai/26c810f9-9059-41e4-8c57-bbfd0c3412e5",
+      "title": "Платформа → 1С (1c-http)",
+      "section": "09_openapi_yaml",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Техническая часть/openapi_mvp_post_mvp.yaml": {
+      "page_id": "0670cc99-240f-4110-ab54-500e28cd79e7",
+      "url": "https://buildin.ai/0670cc99-240f-4110-ab54-500e28cd79e7",
+      "title": "OpenAPI post-MVP",
+      "section": "09_openapi_yaml",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Интервью и встречи/Информация на старте.md": {
+      "page_id": "00e4db4d-ad11-41af-a6cd-cd96f4ea481e",
+      "url": "https://buildin.ai/00e4db4d-ad11-41af-a6cd-cd96f4ea481e",
+      "title": "Информация на старте",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Интервью и встречи/Карта_заинтересованных_сторон.md": {
+      "page_id": "d63d5750-1d07-4ef5-a669-dd12ce795227",
+      "url": "https://buildin.ai/d63d5750-1d07-4ef5-a669-dd12ce795227",
+      "title": "Карта_заинтересованных_сторон",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Интервью и встречи/Реестр_открытых_вопросов.md": {
+      "page_id": "371001aa-fbcd-4ecd-a5ce-50f0b381dc78",
+      "url": "https://buildin.ai/371001aa-fbcd-4ecd-a5ce-50f0b381dc78",
+      "title": "Реестр_открытых_вопросов",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Интервью и встречи/Реестр_документов_для_проектирования.md": {
+      "page_id": "39ea5b1c-53c4-4b7d-ba1a-41e0828d9860",
+      "url": "https://buildin.ai/39ea5b1c-53c4-4b7d-ba1a-41e0828d9860",
+      "title": "Реестр_документов_для_проектирования",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Интервью и встречи/Вопросы_клиенту_по_процессу_заказа.md": {
+      "page_id": "5a4e5be3-45c3-42bc-8cc5-1d4e31ebeb47",
+      "url": "https://buildin.ai/5a4e5be3-45c3-42bc-8cc5-1d4e31ebeb47",
+      "title": "Вопросы_клиенту_по_процессу_заказа",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "Аудит_документации_2026-06-29.md": {
+      "page_id": "f901cdc6-f7b4-475b-8427-fd672c2487ac",
+      "url": "https://buildin.ai/f901cdc6-f7b4-475b-8427-fd672c2487ac",
+      "title": "Аудит документации (2026-06-29)",
+      "section": "10_интервью",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "входящие/incoming-hooks.md": {
+      "page_id": "8c460b29-9768-4129-b032-68a0a642aa9a",
+      "url": "https://buildin.ai/8c460b29-9768-4129-b032-68a0a642aa9a",
+      "title": "incoming-hooks",
+      "section": "11_входящие",
+      "synced_at": "2026-06-29T11:04:42Z"
+    },
+    "ЧТЗ/13_нефункциональные_требования.md": {
+      "page_id": "47ac3af9-538a-4ee3-bf76-dbf1d39dc081",
+      "url": "https://buildin.ai/47ac3af9-538a-4ee3-bf76-dbf1d39dc081",
+      "title": "13_нефункциональные_требования",
+      "section": "02_чтз",
+      "synced_at": "2026-06-30T09:28:34Z"
+    },
+    "ЧТЗ/14_обучение_академия.md": {
+      "page_id": "8ef053ac-146f-419a-a42f-284de7f50748",
+      "url": "https://buildin.ai/8ef053ac-146f-419a-a42f-284de7f50748",
+      "title": "14_обучение_академия",
+      "section": "02_чтз",
+      "synced_at": "2026-06-30T09:28:34Z"
+    },
+    "Техническая часть/Мобильное_приложение_подход.md": {
+      "page_id": "f480c7ed-6363-4b6d-81fc-b4aa64390c49",
+      "url": "https://buildin.ai/f480c7ed-6363-4b6d-81fc-b4aa64390c49",
+      "title": "Мобильное_приложение_подход",
+      "section": "06_тех_архитектура",
+      "synced_at": "2026-06-30T09:28:34Z"
+    },
+    "План проекта/План проекта на старте.md": {
+      "page_id": "17fd0ae7-14c7-4ccf-b6e5-43f56c970bcd",
+      "url": "https://buildin.ai/17fd0ae7-14c7-4ccf-b6e5-43f56c970bcd",
+      "title": "План проекта на старте",
+      "section": "01_о_проекте",
+      "synced_at": "2026-06-30T09:31:38Z"
+    }
+  }
+}
