@@ -34,6 +34,8 @@ tags:
     description: Претензии и обращения по заказам
   - name: Users
     description: Управление пользователями контрагента
+  - name: Notifications
+    description: Уведомления личного кабинета
 paths:
   /csrf-cookie:
     get:
@@ -366,6 +368,12 @@ paths:
           schema:
             $ref: '#/components/schemas/OrderStatus'
           description: Фильтр по статусу заказа.
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Поиск по заказу. Пробельные символы в начале и конце обрезаются.
       responses:
         '200':
           description: OK
@@ -377,7 +385,9 @@ paths:
                 data:
                   - id: 1001
                     createdAt: '2026-06-01 15:42:00'
-                    status: processing
+                    status:
+                      value: processing
+                      label: Обрабатывается
                     deliveryType: palizh
                     currency: RUB
                     totalQty: 3
@@ -420,7 +430,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/OrderDetail'
         '400':
           description: Bad request
           content:
@@ -459,7 +469,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/OrderDetail'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -496,7 +506,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /claim:
+  /claims:
     get:
       operationId: listClaims
       tags:
@@ -550,15 +560,15 @@ paths:
                           total_price: '2581.00'
                           created_at: '2026-06-01T15:42:00+04:00'
                 links:
-                  first: https://palizh.nutnetdev.ru/api/claim?page=1
-                  last: https://palizh.nutnetdev.ru/api/claim?page=1
+                  first: https://palizh.nutnetdev.ru/api/claims?page=1
+                  last: https://palizh.nutnetdev.ru/api/claims?page=1
                   prev: null
                   next: null
                 meta:
                   current_page: 1
                   from: 1
                   last_page: 1
-                  path: https://palizh.nutnetdev.ru/api/claim
+                  path: https://palizh.nutnetdev.ru/api/claims
                   per_page: 10
                   to: 1
                   total: 1
@@ -888,8 +898,20 @@ paths:
       tags:
         - Catalog
       summary: Список товаров
-      description: Публичный список товаров с фильтрами и сортировкой.
+      description: |
+        Публичный список товаров с фильтрами и сортировкой.
+
+        **Поиск (страница результатов, ЧТЗ 11 §5.8, W4):** при непустом `q` (≥ 3 символов) — текстовый поиск по каталогу (Typesense);
+        порядок выдачи — по релевантности; в теле ответа может быть `searchString` (исправление раскладки).
+        Подсказки в шапке — отдельно `GET /search`. Параметр `sort` при активном `q` не использовать.
       parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 3
+          description: Поисковая строка. Используется только если длина строки не меньше 3 символов.
         - name: page
           in: query
           required: false
@@ -971,8 +993,12 @@ paths:
             enum:
               - created_at
               - price
+              - relevance
             default: created_at
-          description: Поле сортировки.
+          description: |
+            Поле сортировки.
+
+            relevance — сортировка по релевантности поиска. Имеет смысл только при передаче параметра q (длина строки не меньше 3 символов).
         - name: sortDir
           in: query
           required: false
@@ -982,7 +1008,10 @@ paths:
               - asc
               - desc
             default: asc
-          description: Направление сортировки.
+          description: |
+            Направление сортировки.
+
+            Примечание: при sortField=relevance параметр sortDir может игнорироваться.
       responses:
         '200':
           description: OK
@@ -993,6 +1022,7 @@ paths:
               example:
                 data:
                   - id: 1
+                    sku: PLZ-000123
                     slug: medovik-1
                     category:
                       id: 1
@@ -1065,57 +1095,63 @@ paths:
                   to: 1
                   total: 1
 
-  /search/products:
+  /search:
     get:
-      operationId: searchProducts
+      operationId: search
       tags:
         - Catalog
-      summary: Поиск по каталогу
+      summary: Поиск (подсказки)
       description: |
-        Полнотекстовый поиск на платформе (без внешнего движка). Поля и ранжирование — ЧТЗ 11 §5.5–5.6.
-        Правила видимости — как у `GET /products` (персональная номенклатура, гость/B2B).
-      security:
-        - {}
-        - sanctum: []
+        Возвращает подсказки по товарам и категориям.
+
+        Для товаров поле name возвращается в виде highlight (snippet) из поискового движка и может содержать HTML-разметку (например, <mark>...</mark>).
+
+        Также возвращает:
+        - searchString — строку поиска (может отличаться от входной при автоисправлении раскладки)
+        - nextTokens — подсказки следующего слова / автодополнение
+
+        Параметр q обязателен и должен быть не короче 3 символов.
       parameters:
         - name: q
           in: query
           required: true
           schema:
             type: string
-            minLength: 1
-            maxLength: 200
-          description: Поисковый запрос. UI — не вызывать при длине &lt; 2 символов после trim.
-        - name: categorySlug
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Ограничение по категории (аналог `categorySlug` в листинге).
-        - name: page
+            minLength: 3
+          description: Поисковая строка.
+        - name: limit
           in: query
           required: false
           schema:
             type: integer
             minimum: 1
-            default: 1
-        - name: perPage
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 24
+            maximum: 50
+            default: 10
+          description: Максимальное количество элементов в каждой группе (products/categories).
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchProductsResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+                $ref: '#/components/schemas/SearchResponse'
+              example:
+                searchString: паста акриловая
+                nextTokens:
+                  - текстурная
+                  - мерцающая
+                data:
+                  products:
+                    - id: 1
+                      slug: medovik-1
+                      name: Торт <mark>Медовик</mark>
+                  categories:
+                    - id: 1
+                      name: Торты
+                      slug: cakes
+                      children: []
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /products/{slug}:
     get:
@@ -1138,6 +1174,7 @@ paths:
                 $ref: '#/components/schemas/Product'
               example:
                 id: 1
+                sku: PLZ-000123
                 slug: medovik-1
                 category:
                   id: 1
@@ -1248,10 +1285,7 @@ paths:
       operationId: register
       tags:
         - Auth
-      summary: Заявка «Стать клиентом»
-      description: |
-        Создаёт заявку на регистрацию юрлица (ИНН, контакты, email). **Пароль не передаётся** —
-        устанавливается по ссылке из письма после активации в 1С (ЧТЗ 05 §4.3.1).
+      summary: Регистрация
       parameters:
         - $ref: '#/components/parameters/XSRFTokenHeader'
       requestBody:
@@ -1262,7 +1296,7 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '204':
-          description: No Content — заявка принята
+          description: No Content
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -1272,9 +1306,6 @@ paths:
       tags:
         - Auth
       summary: Логин
-      description: |
-        Вход по email и паролю. Доступен после установки пароля по ссылке из `EMAIL_ACCESS_GRANTED`
-        и активации контрагента в 1С (ЧТЗ 05).
       parameters:
         - $ref: '#/components/parameters/XSRFTokenHeader'
         - name: withCounterparty
@@ -1403,6 +1434,112 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '422':
           $ref: '#/components/responses/ValidationError'
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags:
+        - Notifications
+      summary: Список уведомлений личного кабинета
+      description: |
+        Возвращает уведомления личного кабинета текущего пользователя.
+        Фильтрация по типу: только `AccountNotification`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPaginationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadCount
+      tags:
+        - Notifications
+      summary: Количество непрочитанных уведомлений
+      description: |
+        Возвращает количество непрочитанных уведомлений личного кабинета текущего пользователя.
+        Фильтрация по типу: только `AccountNotification`.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 5
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/{id}/read:
+    post:
+      operationId: readNotification
+      tags:
+        - Notifications
+      summary: Отметить уведомление как прочитанное
+      description: |
+        Отмечает конкретное уведомление личного кабинета как прочитанное.
+        Уведомление должно принадлежать текущему пользователю.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID уведомления.
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /notifications/read-all:
+    post:
+      operationId: readAllNotifications
+      tags:
+        - Notifications
+      summary: Отметить все уведомления как прочитанные
+      description: |
+        Отмечает все непрочитанные уведомления личного кабинета текущего пользователя как прочитанные.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
 
   /users:
     post:
@@ -1562,7 +1699,7 @@ components:
           type: string
           format: email
           example: ivan@example.com
-          description: Email — в дальнейшем логин для входа; пароль задаётся по ссылке из письма после активации в 1С.
+          description: Email — обязательное поле, которое в дальнейшем будет использоваться как логин для входа в личный кабинет.
         phone:
           type: string
           example: '+79991234567'
@@ -2203,6 +2340,10 @@ components:
         - links
         - meta
       properties:
+        searchString:
+          type: string
+          nullable: true
+          description: Строка поиска (может отличаться от входной при автоисправлении раскладки). Возвращается только если был применен поиск по q.
         data:
           type: array
           items:
@@ -2211,6 +2352,54 @@ components:
           $ref: '#/components/schemas/PaginationLinks'
         meta:
           $ref: '#/components/schemas/PaginationMeta'
+
+    SearchResponse:
+      type: object
+      required:
+        - searchString
+        - nextTokens
+        - data
+      properties:
+        searchString:
+          type: string
+          description: Строка поиска (может отличаться от входной при автоисправлении раскладки).
+        nextTokens:
+          type: array
+          items:
+            type: string
+          description: Подсказки для автодополнения последнего слова или следующего слова поисковой фразы.
+        data:
+          type: object
+          required:
+            - products
+            - categories
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductSearch'
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+
+    ProductSearch:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        slug:
+          type: string
+          example: medovik-1
+        name:
+          type: string
+          description: Highlight (snippet) названия товара из поискового движка. Может содержать HTML-разметку (например, <mark>...</mark>).
+          example: Торт Медовик
 
     Product:
       type: object
@@ -2224,6 +2413,10 @@ components:
         id:
           type: integer
           example: 1
+        sku:
+          type: string
+          nullable: true
+          example: PLZ-000123
         slug:
           type: string
           example: medovik-1
@@ -2485,22 +2678,18 @@ components:
           example: RUB
         amount:
           type: string
-          description: Цена за штуку (ед. заказа) для клиента по соглашению.
           example: '1290.50'
         amountPerBox:
           type: string
           nullable: true
-          description: Цена за коробку целиком (при заказе полной упаковки unitsPerBox).
           example: '15486.00'
         discountedAmount:
           type: string
           nullable: true
-          description: amount с персональной скидкой на розницу.
           example: '1190.50'
         discountedAmountPerBox:
           type: string
           nullable: true
-          description: amountPerBox с персональной скидкой на розницу (% из соглашения).
           example: '14286.00'
         priceTypeCode:
           type: string
@@ -2904,66 +3093,19 @@ components:
           type: integer
           example: 10
         qty:
-          type: number
-          example: 20
-          description: Количество в единицах заказа (шт).
+          type: integer
+          example: 2
         unitPrice:
           type: string
-          example: '1036.93'
-          description: Средняя цена за ед. = lineTotal / qty (2 знака). ЧТЗ 01 §4.2.4.
+          example: '1290.50'
         lineTotal:
           type: string
           nullable: true
-          example: '20738.50'
-          description: |
-            Сумма строки (авторитетное поле). fullBoxesCount × pricePerBox + remainder × pricePerPiece;
-            округление RUB 2 знака, round half up.
-        packagingMode:
-          type: string
-          enum: [multiple, mixed, non_multiple, not_applicable]
-          description: Режим кратности упаковке (ЧТЗ 01 §4.2.4).
-        unitsPerBox:
-          type: integer
-          nullable: true
-          example: 15
-        fullBoxesCount:
-          type: integer
-          example: 1
-        remainderQuantity:
-          type: number
-          example: 5
-        referenceUnitPricePerBox:
-          type: string
-          nullable: true
-          description: Цена за коробку (справочно).
-        referenceUnitPricePerPiece:
-          type: string
-          nullable: true
-          description: Цена за штуку (справочно).
+          example: '2581.00'
         product:
           allOf:
             - $ref: '#/components/schemas/Product'
           nullable: true
-
-    SearchProductsResponse:
-      type: object
-      required:
-        - query
-        - data
-        - links
-        - meta
-      properties:
-        query:
-          type: string
-          description: Нормализованный поисковый запрос.
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Product'
-        links:
-          $ref: '#/components/schemas/PaginationLinks'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
 
     FavoriteProductRequest:
       type: object
@@ -3074,6 +3216,18 @@ components:
         - completed
       example: processing
 
+    OrderStatusResource:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          $ref: '#/components/schemas/OrderStatus'
+        label:
+          type: string
+          example: Обрабатывается
+
     OrderPaginationResponse:
       type: object
       required:
@@ -3108,7 +3262,7 @@ components:
           type: string
           example: '2026-06-01 15:42:00'
         status:
-          $ref: '#/components/schemas/OrderStatus'
+          $ref: '#/components/schemas/OrderStatusResource'
         deliveryType:
           $ref: '#/components/schemas/DeliveryType'
         currency:
@@ -3159,6 +3313,37 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/OrderItem'
+
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          required:
+            - statusTransitions
+          properties:
+            statusTransitions:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderStatusTransition'
+
+    OrderStatusTransition:
+      type: object
+      required:
+        - id
+        - createdAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        fromStatus:
+          allOf:
+            - $ref: '#/components/schemas/OrderStatusResource'
+          nullable: true
+        toStatus:
+          $ref: '#/components/schemas/OrderStatusResource'
+        createdAt:
+          type: string
+          example: '2026-06-01 15:42:00'
 
     OrderItem:
       type: object
@@ -3437,3 +3622,45 @@ components:
           format: date-time
           nullable: true
           example: '2026-06-01T15:42:00+04:00'
+
+    AccountNotification:
+      type: object
+      required:
+        - id
+        - data
+        - is_read
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        data:
+          type: object
+          description: Данные уведомления (зависит от типа уведомления)
+          example:
+            message: Ваш заказ принят
+        is_read:
+          type: boolean
+          description: Прочитано ли уведомление
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-26T14:00:00+04:00'
+
+    NotificationPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountNotification'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'

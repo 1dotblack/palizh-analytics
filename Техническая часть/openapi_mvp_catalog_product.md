@@ -44,7 +44,7 @@
 - `GET /catalogs/{catalogCode}/categories`
 - `GET /catalogs/{catalogCode}/products`
 - `GET /products/{productId}`
-- `GET /search/products`
+- `GET /search/products` — **черновик**; на стенде канон W4: `GET /search` + `GET /products?q=` (`public-http-openapi.yaml`)
 
 ### 2.2 Не входит в этот слой
 
@@ -78,7 +78,7 @@ flowchart LR
 | `GET /catalogs/{catalogCode}/categories` | Получить дерево категорий каталога | Нет / опционально | Для навигации и фильтров |
 | `GET /catalogs/{catalogCode}/products` | Получить листинг товаров | Нет / опционально | С фильтрами, сортировкой, пагинацией |
 | `GET /products/{productId}` | Получить карточку товара | Нет / опционально | Ценовой блок зависит от auth |
-| `GET /search/products` | Поиск товаров по каталогу | Нет / опционально | По наименованию, артикулу, свойствам |
+| `GET /search/products` | Поиск (черновик client) | — | **Не канон стенда**; см. `GET /products?q=` + `GET /search` |
 
 ---
 
@@ -182,7 +182,7 @@ flowchart LR
 | `filters[...]` | `string/array` | Атрибутные фильтры |
 | `includeArchived` | `boolean` | Для внутренних / специальных сценариев; по умолчанию `false` |
 
-### 7.2 Для `GET /search/products`
+### 7.2 Поиск (черновик client: `GET /search/products`; канон стенда W4: `GET /products?q=`)
 
 | Параметр | Тип | Назначение |
 | -------- | --- | ---------- |
@@ -221,7 +221,7 @@ flowchart LR
 - Ограничение задаётся на **базовой** номенклатуре (`Product` в 1С HTTP), **не** на варианте.
 - Семантика согласована с импортом **`POST /exchange`** (`sync.products` / `sync.categories`).
 - Прямой запрос `GET /products/{productId}` на «чужую» персональную позицию: **404** (как у несуществующей), без раскрытия факта существования другому контрагенту.
-- **Поиск и листинг:** недоступные зрителю позиции **не** попадают в выдачу (каталог и `GET /search/products`; правила — ЧТЗ 11 §5.7).
+- **Поиск и листинг:** недоступные зрителю позиции **не** попадают в выдачу (каталог, `GET /products?q=`, `GET /search`; правила — ЧТЗ 11 §5.7).
 
 ---
 

@@ -6,7 +6,7 @@
 
 В репозитории **[gitlab.com/nutnet/palizh](https://gitlab.com/nutnet/palizh)** каталог **`docs/`** — первоисточник по соответствующим артефактам.
 
-**Последняя подтяжка в аналитику:** `gitlab/main` **`23cbd8e`** — `public-http-openapi.yaml` (**3330** строк): `GET /products/filters`, `attr` / `attrRange`. **`incoming-hooks.md`** приведён к канону GitLab (**2026-06-02**): имена `event` и полей реализованного обмена — как на стенде (`sync.product-types`, `sync.stocks`, `typeGuid`, `attributes[]` и т.д.). `docs/1c-http-openapi.yaml` — без изменений.
+**Последняя подтяжка в аналитику:** `gitlab/main` **`f497379`** (2026-07-06) — `public-http-openapi.yaml` (**3661** строк): `/claims`, `/search` (подсказки), `/notifications/*`. Предыдущая: **`23cbd8e`** — filters, `attr`/`attrRange`.
 
 **Предыдущая подтяжка:** `b86d571` — `discountedAmount`, `shop_working_hours`, скидки в `sync.counterparties`. Ранее: `4f17e9b`, корзина/заказы (`f2824d9`).
 
@@ -53,8 +53,9 @@
 | `POST /me/change-password` | да | нет |
 | `GET /cart`, `DELETE /cart`, `PUT /cart/items` | да (2026-06-11) | нет |
 | `GET /products/filters`, query `attr` / `attrRange` на `GET /products` | да (GitLab `23cbd8e`) | нет |
-| `GET /search/products` | да (**2026-06-02**, аналитика) | да (черновик; синхронизировать) |
-| `GET /claim`, `POST /claim` | да (канон стенда) | нет (`/claims` только в post-MVP yaml) |
+| `GET /search` | да (подсказки) | — |
+| `GET /products` + `q` | да (страница результатов, W4) | `GET /search/products` в client — **не канон** |
+| `GET /claims`, `POST /claims` | да (канон стенда) | нет (`/claims` в post-MVP yaml) |
 | `GET /orders`, `GET /orders/{id}`, `POST /orders/{id}/repeat` | да (2026-06-11) | нет |
 | `CartItem`: `packagingMode`, `fullBoxesCount`, `remainderQuantity`, … | да (**2026-06-02**) | да (`CartItem` в client) |
 | Схемы `ProductAttributes`, `unitsPerBox` в карточке/листинге | да (2026-06-11) | нет / частично |

@@ -224,11 +224,11 @@
 
 ## 9. API-контракт (канон стенда)
 
-> **Обновлено 2026-06-29.** Источник истины — [`public-http-openapi.yaml`](public-http-openapi.yaml) (`GET /claim`, `POST /claim`). Черновик `/api/v1/lk/claims` **снят**.
+> **Обновлено 2026-07-06.** Источник истины — [`public-http-openapi.yaml`](public-http-openapi.yaml) (`GET /claims`, `POST /claims`). На стенде: `/api/claims`. Черновик `/api/v1/lk/claims` и вариант `/claim` (ед. ч.) **сняты**.
 
 ### 9.1 Создание претензии
 
-`POST /claim` (на стенде: `/api/claim`)
+`POST /claims` (на стенде: `/api/claims`)
 
 Назначение:
 
@@ -245,18 +245,18 @@
 
 В каноне public-http отдельный path для вложений **не зафиксирован** на MVP. Рабочие варианты для реализации:
 
-- multipart при `POST /claim`;
+- multipart при `POST /claims`;
 - presigned upload (S3) + ссылки в теле — см. `Backend_план_работ_MVP.md` A.4.
 
 ### 9.3 Получение списка претензий
 
-`GET /claim` (на стенде: `/api/claim`)
+`GET /claims` (на стенде: `/api/claims`)
 
 Пагинация: `page`, `perPage`. Сортировка: `created_at desc` (фиксированная в спеке).
 
 ### 9.4 Получение карточки претензии
 
-На MVP детальная карточка в списке `GET /claim` может быть достаточна; отдельный `GET /claim/{id}` — **уточнить при реализации** (в post-MVP OpenAPI — `/claims/{claimId}`).
+На MVP детальная карточка в списке `GET /claims` может быть достаточна; отдельный `GET /claims/{id}` — **уточнить при реализации** (в post-MVP OpenAPI — `/claims/{claimId}`).
 
 > **Post-MVP:** расширенная модель статусов, документы исполнения из 1С — см. §10.
 
@@ -270,7 +270,7 @@
 |------|-------------|
 | `POST /api/v1/lk/claims` | Черновик до канона public-http |
 | `GET /api/v1/lk/claims` | То же |
-| `/api/claims` (код Laravel) | Расхождение со спекой; выровнять на `/claim` |
+| `/claim` (ед. ч.) | Снят при согласовании с GitLab 2026-07-06 |
 
 ---
 
