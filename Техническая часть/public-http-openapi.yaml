@@ -30,12 +30,16 @@ tags:
     description: Избранные товары
   - name: Orders
     description: Заказы
+  - name: Documents
+    description: Документы личного кабинета (метаданные и скачивание)
   - name: Claims
     description: Претензии и обращения по заказам
   - name: Users
     description: Управление пользователями контрагента
   - name: Notifications
     description: Уведомления личного кабинета
+  - name: Delivery addresses
+    description: Адреса доставки контрагента текущего пользователя
 paths:
   /csrf-cookie:
     get:
@@ -413,7 +417,9 @@ paths:
       tags:
         - Orders
       summary: Создать заказ из текущей корзины
-      description: Создаёт заказ на основании текущей (неархивной) корзины пользователя.
+      description: |
+        Создаёт заказ на основании текущей (неархивной) корзины пользователя.
+
       security:
         - cookieAuth: []
       parameters:
@@ -424,6 +430,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              contactName: Иванов Иван Иванович
+              contactPhone: '+79991234567'
+              contactEmail: ivan@example.com
+              deliveryType: palizh
+              deliveryAddressId: 1
+              deliveryInfo:
+                date: '2026-07-01'
+              comment: Позвоните за час до доставки.
       responses:
         '201':
           description: Created
@@ -437,9 +452,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                message: Cart is empty
-                code: CART_EMPTY
+              examples:
+                cartEmpty:
+                  summary: Cart is empty
+                  value:
+                    message: Cart is empty
+                    code: CART_EMPTY
+                deliveryAddressRequired:
+                  summary: Delivery address is required
+                  value:
+                    message: Не передан адрес доставки
+                    code: BAD_REQUEST
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '422':
@@ -505,6 +528,151 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+
+  /documents:
+    get:
+      operationId: listDocuments
+      tags:
+        - Documents
+      summary: Список документов текущего контрагента
+      description: |
+        Возвращает метаданные документов, доступных контрагенту текущего пользователя в разделе ЛК «Документы».
+
+        Источник: `sync.documents` и выдача по запросу из 1С. Сортировка фиксированная: `created_at desc`.
+
+        Поиск и фильтры — ЧТЗ 02 §4.9. Не путать с глобальным поиском по каталогу (ЧТЗ 11).
+
+        ❗ Метод на стенде может быть ещё не реализован.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+          description: |
+            Поиск по подстроке (регистронезависимо). Поля: `name`; при связи с заказом — номер заказа на платформе;
+            при связи с товаром — `sku` / название номенклатуры. Пробелы по краям обрезаются; менее 2 символов — `422`.
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/DocumentType'
+          description: Фильтр по типу документа (код из 1С / `sync.documents`).
+        - name: relatedEntityType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/DocumentRelatedEntityType'
+          description: Фильтр по типу привязки документа.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPaginationResponse'
+              example:
+                data:
+                  - id: 501
+                    guid: 8b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1a
+                    name: Договор №1234.docx
+                    type: agreement
+                    typeLabel: Договор
+                    relatedEntityType: counterparty
+                    relatedEntityGuid: 6f9619ff-8b86-d011-b42d-00c04fc964ff
+                    platformOrderId: null
+                    productSku: null
+                    productName: null
+                    fileAvailable: true
+                    createdAt: '2026-06-15 10:00:00'
+                links:
+                  first: https://palizh.nutnetdev.ru/api/documents?page=1
+                  last: https://palizh.nutnetdev.ru/api/documents?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  path: https://palizh.nutnetdev.ru/api/documents
+                  per_page: 10
+                  to: 1
+                  total: 1
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /documents/{id}/download:
+    get:
+      operationId: downloadDocument
+      tags:
+        - Documents
+      summary: Скачать файл документа
+      description: |
+        Возвращает бинарное содержимое документа для скачивания.
+
+        Если файл хранится на платформе (после `sync.documents` с `file`) — отдаётся из Media Library.
+        Если файл доступен только в 1С — платформа проксирует ответ `get_documents` (см. `1c-http-openapi.yaml`).
+
+        Документ должен принадлежать контрагенту текущего пользователя.
+
+        ❗ Метод на стенде может быть ещё не реализован.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID документа на платформе.
+      responses:
+        '200':
+          description: Файл документа
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Имя файла для скачивания, например `attachment; filename="Счет.pdf"`.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          description: Файл ещё не готов (формирование в 1С)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /claims:
     get:
@@ -898,12 +1066,7 @@ paths:
       tags:
         - Catalog
       summary: Список товаров
-      description: |
-        Публичный список товаров с фильтрами и сортировкой.
-
-        **Поиск (страница результатов, ЧТЗ 11 §5.8, W4):** при непустом `q` (≥ 3 символов) — текстовый поиск по каталогу (Typesense);
-        порядок выдачи — по релевантности; в теле ответа может быть `searchString` (исправление раскладки).
-        Подсказки в шапке — отдельно `GET /search`. Параметр `sort` при активном `q` не использовать.
+      description: Публичный список товаров с фильтрами и сортировкой.
       parameters:
         - name: q
           in: query
@@ -1623,6 +1786,230 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '422':
           $ref: '#/components/responses/ValidationError'
+
+  /delivery-addresses:
+    get:
+      operationId: listDeliveryAddresses
+      tags:
+        - Delivery addresses
+      summary: Список адресов доставки
+      description: |
+        Возвращает список адресов доставки, привязанных к контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryAddress'
+              example:
+                - id: 1
+                  counterpartyId: 1
+                  regionId: 10
+                  region:
+                    id: 10
+                    name: Ханты-Мансийский автономный округ — Югра
+                    country: Россия
+                    countryCode: RU
+                    fiasId: 5a76a998-3fa4-49b2-843e-2a1d0999a20f
+                  createdByUserId: 12
+                  value: г Ханты-Мансийск, ул Дзержинского, д 10
+                  unrestrictedValue: 628007, Ханты-Мансийский автономный округ — Югра, г Ханты-Мансийск, ул Дзержинского, д 10
+                  postalCode: '628007'
+                  area: г Ханты-Мансийск
+                  areaFiasId: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+                  city: г Ханты-Мансийск
+                  cityFiasId: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+                  settlement: null
+                  settlementFiasId: null
+                  street: ул Дзержинского
+                  streetFiasId: 2bd635ea-5c05-4f5f-ae5c-8bfc7f84cde2
+                  house: '10'
+                  houseFiasId: 8d713a4a-9dfd-4d39-8c49-23bb18f7be83
+                  houseType: д
+                  block: null
+                  entrance: '2'
+                  floor: '7'
+                  flat: null
+                  flatFiasId: null
+                  comment: Позвонить за 15 минут
+                  createdAt: '2026-07-07 15:00:00'
+                  updatedAt: '2026-07-07 15:00:00'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+
+    post:
+      operationId: createDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Создать адрес доставки
+      description: |
+        Создаёт адрес доставки для контрагента текущего пользователя.
+
+        Клиент передаёт только:
+        - `address` (полный адрес одной строкой)
+        - `entrance`, `floor`, `flat`, `comment` (опционально)
+
+        Остальные поля (регион, город, улица, дом, и т.д.) подтягиваются через DaData.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliveryAddressRequest'
+            example:
+              address: г Ханты-Мансийск, ул Дзержинского, д 10
+              entrance: '2'
+              floor: '7'
+              flat: '12'
+              comment: Позвонить за 15 минут
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: The given data was invalid.
+                errors:
+                  address:
+                    - Некорректный адрес
+
+  /delivery-addresses/{id}:
+    patch:
+      operationId: updateDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Обновить адрес доставки
+      description: |
+        Обновляет адрес доставки.
+
+        Адрес должен принадлежать контрагенту текущего пользователя.
+        Если передать `address`, адрес будет заново разобран через DaData.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID адреса доставки.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeliveryAddressRequest'
+            example:
+              address: г Ханты-Мансийск, ул Дзержинского, д 10
+              entrance: '1'
+              floor: '3'
+              flat: 'офис 12'
+              comment: Оставить у охраны
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: The given data was invalid.
+                errors:
+                  address:
+                    - Некорректный адрес
+
+    delete:
+      operationId: deleteDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Удалить адрес доставки
+      description: |
+        Удаляет адрес доставки.
+
+        Адрес должен принадлежать контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID адреса доставки.
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '404':
+          $ref: '#/components/responses/NotFoundError'
 
 components:
   securitySchemes:
@@ -2781,6 +3168,204 @@ components:
           example: true
           description: Статус блокировки пользователя.
 
+    Region:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 10
+        name:
+          type: string
+          example: Ханты-Мансийский автономный округ — Югра
+        country:
+          type: string
+          nullable: true
+          example: Россия
+        countryCode:
+          type: string
+          nullable: true
+          example: RU
+        fiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 5a76a998-3fa4-49b2-843e-2a1d0999a20f
+
+    DeliveryAddress:
+      type: object
+      required:
+        - id
+        - counterpartyId
+        - regionId
+      properties:
+        id:
+          type: integer
+          example: 1
+        counterpartyId:
+          type: integer
+          example: 1
+        regionId:
+          type: integer
+          example: 10
+        region:
+          allOf:
+            - $ref: '#/components/schemas/Region'
+          nullable: true
+        createdByUserId:
+          type: integer
+          nullable: true
+          example: 12
+        value:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        unrestrictedValue:
+          type: string
+          nullable: true
+          example: 628007, Ханты-Мансийский автономный округ — Югра, г Ханты-Мансийск, ул Дзержинского, д 10
+        postalCode:
+          type: string
+          nullable: true
+          example: '628007'
+        area:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск
+        areaFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+        city:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск
+        cityFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+        settlement:
+          type: string
+          nullable: true
+        settlementFiasId:
+          type: string
+          format: uuid
+          nullable: true
+        street:
+          type: string
+          nullable: true
+          example: ул Дзержинского
+        streetFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 2bd635ea-5c05-4f5f-ae5c-8bfc7f84cde2
+        house:
+          type: string
+          nullable: true
+          example: '10'
+        houseFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 8d713a4a-9dfd-4d39-8c49-23bb18f7be83
+        houseType:
+          type: string
+          nullable: true
+          example: д
+        block:
+          type: string
+          nullable: true
+        entrance:
+          type: string
+          nullable: true
+          example: '2'
+        floor:
+          type: string
+          nullable: true
+          example: '7'
+        flat:
+          type: string
+          nullable: true
+        flatFiasId:
+          type: string
+          format: uuid
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+          example: Позвонить за 15 минут
+        createdAt:
+          type: string
+          nullable: true
+          example: '2026-07-07 15:00:00'
+        updatedAt:
+          type: string
+          nullable: true
+          example: '2026-07-07 15:00:00'
+
+    CreateDeliveryAddressRequest:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          maxLength: 1024
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        entrance:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '2'
+        floor:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '7'
+        flat:
+          type: string
+          nullable: true
+          maxLength: 32
+          example: '12'
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: Позвонить за 15 минут
+
+    UpdateDeliveryAddressRequest:
+      type: object
+      properties:
+        address:
+          type: string
+          maxLength: 1024
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        entrance:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '1'
+        floor:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '3'
+        flat:
+          type: string
+          nullable: true
+          maxLength: 32
+          example: офис 12
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: Оставить у охраны
+
     Counterparty:
       type: object
       required:
@@ -3170,6 +3755,7 @@ components:
         - contactPhone
         - contactEmail
         - deliveryType
+        - deliveryAddressId
         - deliveryInfo
         - comment
       properties:
@@ -3187,13 +3773,16 @@ components:
           example: ivan@example.com
         deliveryType:
           $ref: '#/components/schemas/DeliveryType'
+        deliveryAddressId:
+          type: integer
+          minimum: 1
+          example: 1
+          description: ID адреса доставки (из справочника адресов доставки контрагента).
         deliveryInfo:
           type: object
           description: |
             Данные доставки. Структура зависит от `deliveryType`.
           additionalProperties: true
-          example:
-            address: г. Самара, ул. Ленина, 1
         comment:
           type: string
           example: Позвоните за час до доставки.
@@ -3275,6 +3864,114 @@ components:
           type: string
           example: '1290.50'
 
+    DocumentType:
+      type: string
+      description: |
+        Код типа документа. Канон импорта — `sync.documents.type` в `входящие/incoming-hooks.md`.
+        Расширение списка — по согласованию с 1С (ЧТЗ 02 §4.9).
+      enum:
+        - agreement
+        - bill
+        - upd
+        - ttn
+        - quality_passport
+        - reconciliation_act
+        - tds
+        - msds
+        - sgr
+        - safety_passport
+        - product_catalog
+        - other
+
+    DocumentRelatedEntityType:
+      type: string
+      description: |
+        Тип сущности, к которой привязан документ.
+        В `sync.documents` — `relatedEntityType` (`order` / `counterparty`); для номенклатурных файлов на платформе — `product`.
+      enum:
+        - order
+        - counterparty
+        - product
+
+    DocumentListItem:
+      type: object
+      required:
+        - id
+        - guid
+        - name
+        - type
+        - typeLabel
+        - relatedEntityType
+        - fileAvailable
+        - createdAt
+      properties:
+        id:
+          type: integer
+          description: Внутренний ID документа на платформе.
+          example: 501
+        guid:
+          type: string
+          format: uuid
+          description: GUID документа в 1С.
+          example: 8b0c9c9a-1f9f-4edb-8d6b-8a3b2d2c0c1a
+        name:
+          type: string
+          description: Имя файла для отображения и поиска.
+          example: Договор №1234.docx
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        typeLabel:
+          type: string
+          description: Человекочитаемая подпись типа для UI.
+          example: Договор
+        relatedEntityType:
+          $ref: '#/components/schemas/DocumentRelatedEntityType'
+        relatedEntityGuid:
+          type: string
+          format: uuid
+          nullable: true
+          description: GUID связанной сущности в 1С (заказ, контрагент, номенклатура).
+        platformOrderId:
+          type: integer
+          nullable: true
+          description: ID заказа на платформе, если документ привязан к заказу (для поиска и ссылок в UI).
+          example: 1001
+        productSku:
+          type: string
+          nullable: true
+          description: Артикул номенклатуры, если документ привязан к товару.
+          example: PLZ-000123
+        productName:
+          type: string
+          nullable: true
+          description: Наименование номенклатуры для отображения и поиска.
+        fileAvailable:
+          type: boolean
+          description: |
+            `true` — файл можно скачать через `GET /documents/{id}/download` (есть на платформе или доступен online из 1С).
+            `false` — только метаданные; скачивание через карточку заказа / запрос в 1С.
+          example: true
+        createdAt:
+          type: string
+          description: Дата появления записи на платформе.
+          example: '2026-06-15 10:00:00'
+
+    DocumentPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
     Order:
       allOf:
         - $ref: '#/components/schemas/OrderListItem'
@@ -3321,6 +4018,14 @@ components:
           required:
             - statusTransitions
           properties:
+            deliveryAddressId:
+              type: integer
+              nullable: true
+              example: 1
+            deliveryAddress:
+              type: string
+              nullable: true
+              example: г. Самара, ул. Ленина, 1
             statusTransitions:
               type: array
               items:

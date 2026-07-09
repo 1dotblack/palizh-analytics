@@ -6,7 +6,7 @@
 
 В репозитории **[gitlab.com/nutnet/palizh](https://gitlab.com/nutnet/palizh)** каталог **`docs/`** — первоисточник по соответствующим артефактам.
 
-**Последняя подтяжка в аналитику:** `gitlab/main` **`f497379`** (2026-07-06) — `public-http-openapi.yaml` (**3661** строк): `/claims`, `/search` (подсказки), `/notifications/*`. Предыдущая: **`23cbd8e`** — filters, `attr`/`attrRange`.
+**Последняя подтяжка в аналитику:** `gitlab/main` **`fd6b1f6`** (2026-07-09) — `public-http-openapi.yaml`, `incoming-hooks.md` (в т.ч. `sync.documents`). Предыдущая: **`f497379`** (2026-07-06).
 
 **Предыдущая подтяжка:** `b86d571` — `discountedAmount`, `shop_working_hours`, скидки в `sync.counterparties`. Ранее: `4f17e9b`, корзина/заказы (`f2824d9`).
 
@@ -56,7 +56,8 @@
 | `GET /search` | да (подсказки) | — |
 | `GET /products` + `q` | да (страница результатов, W4) | `GET /search/products` в client — **не канон** |
 | `GET /claims`, `POST /claims` | да (канон стенда) | нет (`/claims` в post-MVP yaml) |
-| `GET /orders`, `GET /orders/{id}`, `POST /orders/{id}/repeat` | да (2026-06-11) | нет |
+| `GET /orders`, `GET /orders/{id}`, `POST /orders/{id}/repeat` | да (2026-06-11); `?search=` на списке — да | нет |
+| `GET /documents`, `GET /documents/{id}/download` | в спеке (2026-07-09); **роуты на стенде — нет** | `GET /orders/{id}/documents` в client — отдельно |
 | `CartItem`: `packagingMode`, `fullBoxesCount`, `remainderQuantity`, … | да (**2026-06-02**) | да (`CartItem` в client) |
 | Схемы `ProductAttributes`, `unitsPerBox` в карточке/листинге | да (2026-06-11) | нет / частично |
 
@@ -64,3 +65,14 @@
 
 - текст **`public-http-openapi.yaml`**, **`1c-http-openapi.yaml`**, **`incoming-hooks.md`** → вносить в **GitLab `docs/`**, затем обновить копии в аналитике;
 - **`openapi_client_mvp.yaml`** и **`openapi_1c_inbound_mvp.yaml`** — по договорённости продукта/архитектуры здесь или в коде тестов; затем при необходимости `ruby tools/merge_openapi_mvp.rb`.
+
+## Матрицы готовности стенда (снимок GitLab)
+
+| Документ | Назначение |
+|----------|------------|
+| [`Backend_готовность_MVP_матрица.md`](Backend_готовность_MVP_матрица.md) | ЧТЗ ↔ бэкенд Laravel; блокеры B1–B6 |
+| [`Frontend_готовность_MVP_матрица.md`](Frontend_готовность_MVP_матрица.md) | ЧТЗ ↔ Nuxt; блокеры F1–F6 |
+| [`Аудит_готовности_2026-07-06.md`](../Аудит_готовности_2026-07-06.md) | Сводный аудит бэк + фронт + открытые вопросы |
+| [`Задание_создание_заказа_MVP.md`](Задание_создание_заказа_MVP.md) | Постановка для бэка и 1С: корзина → `POST /orders` → `post_orders` |
+
+Обновлять коммит в шапке матриц после `git fetch gitlab`.
