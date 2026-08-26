@@ -18,17 +18,25 @@
 
 1. Убедиться, что MCP **Buildin** подключён и авторизован в Cursor.
 2. Выдать боту права на целевую страницу в Buildin.
-3. **Полная выгрузка** (по умолчанию очищает страницу Cursor и публикует заново):
+3. **Инкрементальная выгрузка** (по умолчанию — только новые документы):
 
 ```bash
 ruby tools/sync_buildin_export.rb
 ```
 
-Только новые документы без очистки:
+Полная пересборка с очисткой:
 
 ```bash
-ruby tools/sync_buildin_export.rb --incremental
+ruby tools/sync_buildin_export.rb --replace
 ```
+
+Запасной путь для таблиц (inline database):
+
+```bash
+BUILDIN_TABLE_MODE=database ruby tools/sync_buildin_export.rb
+```
+
+Обёртка задаёт `BUILDIN_TABLE_MODE=native` (GFM → блок `table` через shell + append rows).
 
 Скрипт делегирует в `~/.cursor/skills/buildin-export/scripts/sync_buildin_export.rb`.
 
@@ -71,10 +79,11 @@ ruby tools/md_to_buildin_blocks.rb export/buildin/bundle/02_чтз/01_проце
 
 | Режим | Запрос / флаг | Поведение |
 |-------|----------------|-----------|
-| **Полная (replace)** | по умолчанию, «выгрузи всё» | Очистка PAGE_MAP + блоков корня, затем весь manifest |
-| **Инкремент** | `--incremental` | Только документы, которых нет в PAGE_MAP |
+| **Инкремент** | по умолчанию | Только документы, которых нет в PAGE_MAP |
+| **Полная (replace)** | `--replace`, «выгрузи всё заново» | Очистка PAGE_MAP + блоков корня, затем весь manifest |
 | **Раздел** | `--section 02_чтз` | Один блок `section` из manifest |
 | **Dry-run** | `--dry-run` | План без API |
+| **Таблицы** | `BUILDIN_TABLE_MODE=native` (по умолчанию) | Native `table`; `database` — запасной путь |
 
 ## Отличие от NotebookLM
 

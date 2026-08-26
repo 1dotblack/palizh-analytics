@@ -1,44 +1,43 @@
 # Правила форматирования для выгрузки в Buildin
 
-Конвертер: `tools/md_to_buildin_blocks.rb`. API-хелперы: `tools/buildin_api.rb`.
+Конвертер: `tools/md_to_buildin_blocks.rb` (локально) и `~/.cursor/skills/buildin-export/scripts/lib/` (sync). Публикация: `buildin_publish.rb` — native table через shell + append rows.
 
-Проверка таблиц и markdown API:
+Проверка native-таблиц:
 
 ```bash
-ruby tools/publish_buildin_markdown_test.rb
-ruby tools/publish_buildin_style_test.rb
+ruby tools/publish_buildin_table_test.rb
+# → export/buildin/NATIVE_TABLE_TEST.json (verdict PASS/FAIL)
 ```
 
-## Таблицы — database (по умолчанию в выгрузке)
+## Таблицы — native (по умолчанию в выгрузке)
 
-GFM-таблицы (`| col |` + `|---|`) конвертируются в **inline database** (`tools/md_table_database.rb`):
+GFM-таблицы (`| col |` + `|---|`) конвертируются в **native блок `table`**:
 
-1. `md_to_content_sequence` разбивает MD на блоки и элементы `{ kind: database }`.
-2. `POST /v2/databases` (`is_inline: true`) — колонки по заголовкам таблицы.
-3. `POST /v2/pages` с `parent.database_id` — строки с inline-разметкой в ячейках.
+1. `md_to_content_sequence` → элемент `{ kind: "table", rows: [...] }`.
+2. `buildin_publish_native_table!`: `PATCH /blocks/{page}/children` — пустой shell таблицы.
+3. `PATCH /blocks/{table_id}/children` — append `table_row` с ячейками (пачками ≤100).
 
-Переменная `BUILDIN_TABLE_MODE` (по умолчанию **`database`**):
+**Почему двухфазно:** Buildin write API **отбрасывает** nested `children` у блока `table` при одном запросе.
+
+Обёртка `tools/sync_buildin_export.rb` задаёт `BUILDIN_TABLE_MODE=native`.
+
+Переменная `BUILDIN_TABLE_MODE` (по умолчанию **`native`**):
 
 | Режим | Поведение |
 |-------|-----------|
-| **database** | inline database (рекомендуется) |
-| **native** | блоки `table` / `table_row` (ячейки через API пустые) |
+| **native** | блок `table` + append `table_row` (рекомендуется) |
+| **database** | inline database — запасной путь |
 | **steps** | колонка `№` → h3 + буллеты |
 | **markdown** | блок кода с GFM |
 
-Тесты:
+Запасной путь (inline database):
 
 ```bash
+BUILDIN_TABLE_MODE=database ruby tools/sync_buildin_export.rb --section 02_чтз
 ruby tools/publish_buildin_database_table_test.rb
-ruby tools/publish_buildin_style_test.rb
-ruby tools/sync_buildin_export.rb   # новые документы — с database
 ```
 
 Переопубликовать документ с таблицами: удалить `source_rel` из `PAGE_MAP.json` и снова запустить sync.
-
-## Таблицы — native blocks (ограничение API)
-
-Нативные `table` / `table_row` через blocks API **не сохраняют текст ячеек** (баг write API). Импорт MD в UI работает — см. [Аудит](https://buildin.ai/fbbd0ef4-99dc-4445-9db0-32b6a1c99475).
 
 ## Прочие элементы
 
@@ -50,7 +49,7 @@ ruby tools/sync_buildin_export.rb   # новые документы — с datab
 | `1.` | numbered_list_item |
 | `>` | quote |
 | `---` | divider |
-| GFM-таблица | inline **database** (`BUILDIN_TABLE_MODE=database`, по умолчанию) |
+| GFM-таблица | native **table** (`BUILDIN_TABLE_MODE=native`, по умолчанию) |
 | ` ``` ` | code |
 
 ## Не поддерживается
@@ -63,4 +62,4 @@ ruby tools/sync_buildin_export.rb   # новые документы — с datab
 
 Удалите нужный `source_rel` из `export/buildin/PAGE_MAP.json` → `ruby tools/sync_buildin_export.rb`.
 
-Для страниц с таблицами надёжнее: удалить запись из PAGE_MAP и **переимпортировать MD в UI**, пока нет PUT markdown.
+Страницы, выгруженные в режиме **database**, при переходе на native — переопубликовать (удалить из PAGE_MAP и sync заново).

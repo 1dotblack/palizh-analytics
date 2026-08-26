@@ -1,0 +1,4545 @@
+# Публичный HTTP API
+
+<!-- buildin-source: Техническая часть/public-http-openapi.yaml -->
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Public HTTP API
+  version: 0.1.0
+  description: ❗- метод не реализован
+servers:
+  - url: https://palizh.nutnetdev.ru/api
+tags:
+  - name: Auth
+    description: Авторизация и текущий пользователь
+  - name: Security
+    description: Безопасность (CSRF)
+  - name: Banners
+    description: Баннеры
+  - name: Settings
+    description: Публичные настройки приложения
+  - name: News
+    description: Новости
+  - name: Pages
+    description: Страницы
+  - name: Promotions
+    description: Акции
+  - name: Training
+    description: Обучение
+  - name: Catalog
+    description: Каталог (категории и товары)
+  - name: Cart
+    description: Корзина
+  - name: Favorites
+    description: Избранные товары
+  - name: Orders
+    description: Заказы
+  - name: Documents
+    description: Документы
+  - name: Claims
+    description: Претензии и обращения по заказам
+  - name: Users
+    description: Управление пользователями контрагента
+  - name: Notifications
+    description: Уведомления личного кабинета
+  - name: Delivery addresses
+    description: Адреса доставки контрагента текущего пользователя
+paths:
+  /csrf-cookie:
+    get:
+      operationId: getCsrfCookie
+      tags:
+        - Security
+      summary: Получить CSRF cookie для SPA
+      description: Устанавливает cookies, необходимые для CSRF-защиты (например XSRF-TOKEN). Обычно вызывается при старте приложения (или перед первым mutating запросом), а не перед каждым POST/PUT/PATCH/DELETE.
+      responses:
+        '204':
+          description: No Content
+        '200':
+          description: OK
+
+  /banners:
+    get:
+      operationId: listBanners
+      tags:
+        - Banners
+      summary: Список активных баннеров
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BannerListResponse'
+
+  /settings:
+    get:
+      operationId: listSettings
+      tags:
+        - Settings
+      summary: Публичные настройки
+      description: |
+        Возвращает публичные настройки приложения.
+
+        В текущей реализации возвращаются настройки группы `contacts` (ключи вида `contacts:*`).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingsResponse'
+              example:
+                "contacts:hotline_phone": '+7 (800) 234-67-00'
+                "contacts:phone": '+7 (3412) 46-47-00'
+                "contacts:working_hours": 'пн-пт 8:30 - 17:00 (МСК + 1)'
+                "contacts:shop_working_hours": 'пн-пт 8:30 - 17:00 (МСК + 1)'
+                "contacts:email": 'market@palitra.udm.ru'
+                "contacts:email_sales": 'sales@palitra.udm.ru'
+                "contacts:address": 'г. Ижевск, ул. Салютовская, 31'
+                "contacts:address_coordinates": '56.881989, 53.281783'
+                "contacts:image": 'https://example.com/storage/settings/contacts.png'
+                "contacts:vk_url": 'https://vk.com/ipalizh'
+                "contacts:dzen_url": 'https://dzen.ru/id/62381c1272e1481c004c6a36'
+                "contacts:org_about": 'ООО "Новый дом" (ИНН: 1831057110)'
+                "contacts:footer_links":
+                  - url: '/privacy'
+                    label: 'Политика конфиденциальности'
+                    open_in_new_tab: false
+                  - url: '/policy'
+                    label: 'Политика обработки персональных данных'
+                    open_in_new_tab: false
+
+  /news:
+    get:
+      operationId: listNews
+      tags:
+        - News
+      summary: Список новостей
+      description: Публичный список новостей. Сортировка фиксированная, управление сортировкой не предусмотрено.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsPaginationResponse'
+
+  /news/{slug}:
+    get:
+      operationId: getNews
+      tags:
+        - News
+      summary: Детальная новость
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsDetail'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /products/filters:
+    get:
+      operationId: listProductFilters
+      tags:
+        - Catalog
+      summary: Фильтры для категории
+      parameters:
+        - name: categorySlug
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Slug категории.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductFilter'
+
+  /cart:
+    get:
+      operationId: getCart
+      tags:
+        - Cart
+      summary: Текущая корзина
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      operationId: clearCart
+      tags:
+        - Cart
+      summary: Очистить корзину
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /cart/items:
+    put:
+      operationId: setCartItemQty
+      tags:
+        - Cart
+      summary: Установить количество товара в корзине
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCartItemQtyRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /favorites:
+    get:
+      operationId: listFavorites
+      tags:
+        - Favorites
+      summary: Список избранного
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteProductPaginationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      operationId: addFavoriteProduct
+      tags:
+        - Favorites
+      summary: Добавить товар в избранное
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteProductRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavoriteProduct'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      operationId: removeFavoriteProduct
+      tags:
+        - Favorites
+      summary: Удалить товар из избранного
+      description: |
+        Удаляет товар из избранного текущего пользователя.
+        Идемпотентно: если запись не найдена, всё равно вернёт `204`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavoriteProductRequest'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags:
+        - Orders
+      summary: Список заказов текущего контрагента
+      description: |
+        Возвращает заказы, привязанные к контрагенту текущего пользователя.
+
+        Сортировка фиксированная: `created_at desc`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+          description: Фильтр по статусу заказа.
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Поиск по заказу (номер заказа в 1С) или по товару в заказе. Пробельные символы в начале и конце обрезаются.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPaginationResponse'
+              example:
+                data:
+                  - id: 1001
+                    number: НВ00-003086
+                    createdAt: '2026-06-01 15:42:00'
+                    status:
+                      value: processing
+                      label: Обрабатывается
+                    deliveryType: palizh
+                    currency: RUB
+                    totalQty: 3
+                    totalPrice: '1290.50'
+                links:
+                  first: https://palizh.nutnetdev.ru/api/orders?page=1
+                  last: https://palizh.nutnetdev.ru/api/orders?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  path: https://palizh.nutnetdev.ru/api/orders
+                  per_page: 10
+                  to: 1
+                  total: 1
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      operationId: createOrder
+      tags:
+        - Orders
+      summary: Создать заказ из текущей корзины
+      description: |
+        Создаёт заказ на основании текущей (неархивной) корзины пользователя.
+
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              contactName: Иванов Иван Иванович
+              contactPhone: '+79991234567'
+              contactEmail: ivan@example.com
+              deliveryType: palizh
+              deliveryAddressId: 1
+              deliveryInfo:
+                date: '2026-07-01'
+              comment: Позвоните за час до доставки.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                cartEmpty:
+                  summary: Cart is empty
+                  value:
+                    message: Cart is empty
+                    code: CART_EMPTY
+                deliveryAddressRequired:
+                  summary: Delivery address is required
+                  value:
+                    message: Не передан адрес доставки
+                    code: BAD_REQUEST
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags:
+        - Orders
+      summary: Детальный заказ
+      description: |
+        Возвращает заказ по ID.
+        Заказ должен быть привязан к контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID заказа.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /orders/{id}/repeat:
+    post:
+      operationId: repeatOrder
+      tags:
+        - Orders
+      summary: Повторить заказ (перенести товары в текущую корзину)
+      description: |
+        Очищает текущую (неархивную) корзину пользователя (если нет — создаёт) и переносит в неё товары из выбранного заказа.
+        Заказ должен быть привязан к контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID заказа.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepeatOrderResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /documents:
+    get:
+      operationId: listDocuments
+      tags:
+        - Documents
+      summary: Список документов текущего контрагента
+      description: |
+        Возвращает документы, доступные текущему пользователю.
+
+        По умолчанию возвращаются документы, связанные с заказами контрагента (`relatedEntityType=order`).
+        Сортировка фиксированная: `created_at desc`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+        - name: relatedEntityType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/DocumentRelatedEntityType'
+          description: |
+            Тип связанной сущности.
+
+            - `order` — документы заказов контрагента.
+            - `counterparty` — документы самого контрагента.
+        - name: relatedEntityGuid
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            GUID связанной сущности для фильтрации.
+            Используется вместе с `relatedEntityType`.
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          description: |
+            Фильтр по типу документа.
+            Можно передать одно или несколько значений.
+        - name: createdAtFrom
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Начало диапазона даты создания документа (включительно).
+        - name: createdAtTo
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Конец диапазона даты создания документа (включительно).
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: |
+            Поиск по документу.
+            Ищет по title документа, названию типа, а также поддерживает ввод даты.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPaginationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /documents/{guid}/download:
+    get:
+      operationId: downloadDocument
+      tags:
+        - Documents
+      summary: Скачать документ
+      description: |
+        Возвращает файл документа как `attachment`.
+
+        Если к документу прикреплён файл (media) — отдаёт его.
+        Если файла нет — запрашивает файл в 1С и отдаёт ответ.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: guid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: GUID документа.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /claims:
+    get:
+      operationId: listClaims
+      tags:
+        - Claims
+      summary: Список претензий и обращений текущего пользователя
+      description: |
+        Возвращает претензии и обращения, созданные текущим пользователем.
+
+        Сортировка фиксированная: `created_at desc`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimPaginationResponse'
+              example:
+                data:
+                  - id: 1
+                    guid: 550e8400-e29b-41d4-a716-446655440000
+                    title: Бой при доставке
+                    status:
+                      value: submitted
+                      label: Создана
+                    request_type: claim
+                    claim_type: damage
+                    created_at: '2026-06-03 13:20:00'
+                    updated_at: '2026-06-03 13:20:00'
+                    images:
+                      - https://palizh.nutnetdev.ru/storage/claims/images/example-1.jpg
+                    files:
+                      - https://palizh.nutnetdev.ru/storage/claims/files/example-1.pdf
+                    items:
+                      - order_item:
+                          product_name: Торт Медовик
+                          product_type_characteristic_name: 1 кг
+                          qty: 2
+                          unit_price: '1290.50'
+                          total_price: '2581.00'
+                          created_at: '2026-06-01 15:42:00'
+                          updated_at: '2026-06-01 15:42:00'
+                links:
+                  first: https://palizh.nutnetdev.ru/api/claims?page=1
+                  last: https://palizh.nutnetdev.ru/api/claims?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  path: https://palizh.nutnetdev.ru/api/claims
+                  per_page: 10
+                  to: 1
+                  total: 1
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      operationId: createClaim
+      tags:
+        - Claims
+      summary: Создать претензию или обращение по заказу
+      description: |
+        Создаёт претензию или обращение, привязанное к заказу.
+        Статус новой записи — `submitted`.
+
+        Запрос должен быть отправлен как `multipart/form-data` (для загрузки файлов `images` и `files`).
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateClaimRequest'
+            example:
+              order_id: 1001
+              request_type: claim
+              claim_type: damage
+              title: Бой при доставке
+              description: При получении обнаружен повреждённый товар.
+              items:
+                - 1
+                - 2
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /pages/{slug}:
+    get:
+      operationId: getPage
+      tags:
+        - Pages
+      summary: Детальная страница
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /promotions:
+    get:
+      operationId: listPromotions
+      tags:
+        - Promotions
+      summary: Список акций
+      description: |
+        Публичный список активных акций.
+
+        Условия активности:
+        - `is_active = true`
+        - `starts_at <= today` или `starts_at is null`
+        - `ends_at >= today` или `ends_at is null`
+
+        Сортировка фиксированная:
+        - `starts_at asc`
+        - `ends_at asc`
+        - `created_at desc`
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromotionPaginationResponse'
+
+  /promotions/{slug}:
+    get:
+      operationId: getPromotion
+      tags:
+        - Promotions
+      summary: Детальная акция
+      description: Возвращает акцию по `slug`. Если акция неактивна (`is_active = false`) — вернёт 404.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Promotion'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /training/categories:
+    get:
+      operationId: listTrainingCategories
+      tags:
+        - Training
+      summary: Список категорий обучения
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingCategoryListResponse'
+
+  /training/programs:
+    get:
+      operationId: listTrainingPrograms
+      tags:
+        - Training
+      summary: Список программ обучения
+      description: Публичный список программ обучения. Сортировка фиксированная, управление сортировкой не предусмотрено.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+        - name: categorySlugs
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: Фильтр по slug категорий обучения (мультивыбор, OR-логика).
+        - name: formats
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TrainingProgramFormat'
+          description: Фильтр по форматам мероприятия (мультивыбор).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgramPaginationResponse'
+
+  /training/programs/{programSlug}:
+    get:
+      operationId: getTrainingProgram
+      tags:
+        - Training
+      summary: Детальная программа обучения
+      parameters:
+        - name: programSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingProgram'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /training/requests:
+    post:
+      operationId: createTrainingRequest
+      tags:
+        - Training
+      summary: Отправить заявку на обучение
+      description: |
+        Создаёт заявку на обучение. Доступен для гостей и авторизованных пользователей.
+        Если пользователь авторизован, заявка привязывается к его аккаунту и отображается в истории ЛК.
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingRequestBody'
+      responses:
+        '204':
+          description: No Content
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      operationId: listMyTrainingRequests
+      tags:
+        - Training
+      summary: История заявок на обучение текущего пользователя
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingRequestPaginationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags:
+        - Catalog
+      summary: Дерево категорий
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+
+  /categories/{slug}:
+    get:
+      operationId: getCategory
+      tags:
+        - Catalog
+      summary: Детальная категория
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /products:
+    get:
+      operationId: listProducts
+      tags:
+        - Catalog
+      summary: Список товаров
+      description: Публичный список товаров с фильтрами и сортировкой.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 3
+          description: Поисковая строка. Используется только если длина строки не меньше 3 символов.
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+        - name: categorySlug
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Фильтр по slug категории. Если не задан — возвращаются товары из любых категорий.
+        - name: attr
+          in: query
+          required: false
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                type: integer
+          description: |
+            Динамические фильтры атрибутов типа select.
+
+            Формат: attr[<code>][]=<optionId>
+        - name: attrRange
+          in: query
+          required: false
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                from:
+                  type: number
+                  format: float
+                  nullable: true
+                to:
+                  type: number
+                  format: float
+                  nullable: true
+          description: |
+            Динамические фильтры атрибутов типа range.
+
+            Формат: attrRange[<code>][from]=<number>&attrRange[<code>][to]=<number>
+        - name: priceFrom
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Минимальная цена. Фильтрация выполняется по цене для характеристики товара, помеченной как "по умолчанию".
+        - name: priceTo
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+          description: Максимальная цена. Фильтрация выполняется по цене для характеристики товара, помеченной как "по умолчанию".
+        - name: sortField
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - created_at
+              - price
+              - relevance
+            default: created_at
+          description: |
+            Поле сортировки.
+
+            relevance — сортировка по релевантности поиска. Имеет смысл только при передаче параметра q (длина строки не меньше 3 символов).
+        - name: sortDir
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+          description: |
+            Направление сортировки.
+
+            Примечание: при sortField=relevance параметр sortDir может игнорироваться.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPaginationResponse'
+              example:
+                data:
+                  - id: 1
+                    sku: PLZ-000123
+                    slug: medovik-1
+                    category:
+                      id: 1
+                      name: Торты
+                      slug: cakes
+                      children: []
+                    brand:
+                      id: 1
+                      name: Палыч
+                    name: Торт Медовик
+                    description: Описание товара.
+                    productionTimeDays: 2
+                    unitsPerBox: 12
+                    weightKg: 1.25
+                    volumeL: 0.5
+                    boxWeightKg: 10.5
+                    boxSizeWidthCm: 20.0
+                    boxSizeHeightCm: 30.0
+                    boxSizeLengthCm: 40.0
+                    marketplaceUrls:
+                      - type: ozon
+                        url: https://ozon.ru/
+                    images:
+                      - /storage/products/medovik-1.jpg
+                      - /storage/products/medovik-2.jpg
+                    attributes:
+                      worktype:
+                        type: worktype
+                        label: Типы работ
+                        values: []
+                      compatibility:
+                        type: compatibility
+                        label: Совместимость
+                        values:
+                          - id: 2
+                            value: Ложка
+                            subvalue:
+                              value: compatible
+                              label: Совместимый
+                      tinting_method:
+                        type: tinting_method
+                        label: Способ колерования
+                        values: []
+                      special:
+                        type: special
+                        label: Специальные свойства
+                        values: []
+                      surface:
+                        type: surface
+                        label: Обрабатываемая поверхность
+                        values: []
+                    characteristics:
+                      - id: 10
+                        name: 1 кг
+                        isSelected: true
+                        stockQty: 12.5
+                        userPrices:
+                          - id: 1
+                            currency: RUB
+                            amount: '1290.50'
+                            amountPerBox: '15486.00'
+                            discountedAmount: '1190.50'
+                            discountedAmountPerBox: '14286.00'
+                            priceTypeCode: B2B_BASE
+                links:
+                  first: https://palizh.nutnetdev.ru/api/products?page=1
+                  last: https://palizh.nutnetdev.ru/api/products?page=1
+                  prev: null
+                  next: null
+                meta:
+                  current_page: 1
+                  from: 1
+                  last_page: 1
+                  path: https://palizh.nutnetdev.ru/api/products
+                  per_page: 10
+                  to: 1
+                  total: 1
+
+  /search:
+    get:
+      operationId: search
+      tags:
+        - Catalog
+      summary: Поиск (подсказки)
+      description: |
+        Возвращает подсказки по товарам и категориям.
+
+        Для товаров поле name возвращается в виде highlight (snippet) из поискового движка и может содержать HTML-разметку (например, <mark>...</mark>).
+
+        Также возвращает:
+        - searchString — строку поиска (может отличаться от входной при автоисправлении раскладки)
+        - nextTokens — подсказки следующего слова / автодополнение
+
+        Параметр q обязателен и должен быть не короче 3 символов.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+          description: Поисковая строка.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Максимальное количество элементов в каждой группе (products/categories).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              example:
+                searchString: паста акриловая
+                nextTokens:
+                  - текстурная
+                  - мерцающая
+                data:
+                  products:
+                    - id: 1
+                      slug: medovik-1
+                      name: Торт <mark>Медовик</mark>
+                  categories:
+                    - id: 1
+                      name: Торты
+                      slug: cakes
+                      children: []
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /products/{slug}:
+    get:
+      operationId: getProduct
+      tags:
+        - Catalog
+      summary: Детальная страница товара
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              example:
+                id: 1
+                sku: PLZ-000123
+                slug: medovik-1
+                category:
+                  id: 1
+                  name: Торты
+                  slug: cakes
+                  children: []
+                brand:
+                  id: 1
+                  name: Палыч
+                name: Торт Медовик
+                description: Описание товара.
+                productionTimeDays: 2
+                unitsPerBox: 12
+                weightKg: 1.25
+                volumeL: 0.5
+                boxWeightKg: 10.5
+                boxSizeWidthCm: 20.0
+                boxSizeHeightCm: 30.0
+                boxSizeLengthCm: 40.0
+                marketplaceUrls:
+                  - type: ozon
+                    url: https://ozon.ru/
+                images:
+                  - /storage/products/medovik-1.jpg
+                  - /storage/products/medovik-2.jpg
+                attributes:
+                  worktype:
+                    type: worktype
+                    label: Типы работ
+                    values: []
+                  compatibility:
+                    type: compatibility
+                    label: Совместимость
+                    values:
+                      - id: 2
+                        value: Ложка
+                        subvalue:
+                          value: compatible
+                          label: Совместимый
+                  tinting_method:
+                    type: tinting_method
+                    label: Способ колерования
+                    values: []
+                  special:
+                    type: special
+                    label: Специальные свойства
+                    values: []
+                  surface:
+                    type: surface
+                    label: Обрабатываемая поверхность
+                    values: []
+                characteristics:
+                  - id: 10
+                    name: 1 кг
+                    isSelected: true
+                    stockQty: 12.5
+                    userPrices:
+                      - id: 1
+                        currency: RUB
+                        amount: '1290.50'
+                        amountPerBox: '15486.00'
+                        discountedAmount: '1190.50'
+                        discountedAmountPerBox: '14286.00'
+                        priceTypeCode: B2B_BASE
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags:
+        - Auth
+      summary: Запрос на восстановление пароля
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '204':
+          description: No Content
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags:
+        - Auth
+      summary: Сброс пароля по токену
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '204':
+          description: No Content
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+
+  /auth/register:
+    post:
+      operationId: register
+      tags:
+        - Auth
+      summary: Регистрация
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '204':
+          description: No Content
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/login:
+    post:
+      operationId: login
+      tags:
+        - Auth
+      summary: Логин
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: withCounterparty
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Если `true`, подгружает контрагента и возвращает его в поле `counterparty`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsError'
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags:
+        - Auth
+      summary: Логаут
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /me:
+    get:
+      operationId: getMe
+      tags:
+        - Auth
+      summary: Текущий пользователь
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: withCounterparty
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Если `true`, подгружает контрагента и возвращает его в поле `counterparty`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    patch:
+      operationId: updateMe
+      tags:
+        - Auth
+      summary: Редактирование профиля
+      description: Обновляет данные текущего пользователя (имя, email, телефон). Все поля опциональны, но хотя бы одно должно быть передано.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: withCounterparty
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Если `true`, подгружает контрагента и возвращает его в поле `counterparty`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /me/change-password:
+    post:
+      operationId: changePassword
+      tags:
+        - Auth
+      summary: Смена пароля
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags:
+        - Notifications
+      summary: Список уведомлений личного кабинета
+      description: |
+        Возвращает уведомления личного кабинета текущего пользователя.
+        Фильтрация по типу: только `AccountNotification`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Номер страницы.
+        - name: perPage
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Количество элементов на странице. Максимум — 100.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPaginationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadCount
+      tags:
+        - Notifications
+      summary: Количество непрочитанных уведомлений
+      description: |
+        Возвращает количество непрочитанных уведомлений личного кабинета текущего пользователя.
+        Фильтрация по типу: только `AccountNotification`.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 5
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/{id}/read:
+    post:
+      operationId: readNotification
+      tags:
+        - Notifications
+      summary: Отметить уведомление как прочитанное
+      description: |
+        Отмечает конкретное уведомление личного кабинета как прочитанное.
+        Уведомление должно принадлежать текущему пользователю.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID уведомления.
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /notifications/read-all:
+    post:
+      operationId: readAllNotifications
+      tags:
+        - Notifications
+      summary: Отметить все уведомления как прочитанные
+      description: |
+        Отмечает все непрочитанные уведомления личного кабинета текущего пользователя как прочитанные.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users:
+    post:
+      operationId: createUser
+      tags:
+        - Users
+      summary: Создание пользователя
+      description: Создаёт пользователя для текущего контрагента. Доступно только пользователю с ролью director. Роль director назначить нельзя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags:
+        - Users
+      summary: Обновить пользователя контрагента
+      description: |
+        Обновляет роль и/или статус блокировки пользователя контрагента.
+
+        Доступно только пользователю с ролью `director`.
+        Целевой пользователь должен принадлежать тому же контрагенту.
+        Нельзя изменить данные самому себе.
+
+        Можно передать одно или оба поля. Роль `director` назначить нельзя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /delivery-addresses:
+    get:
+      operationId: listDeliveryAddresses
+      tags:
+        - Delivery addresses
+      summary: Список адресов доставки
+      description: |
+        Возвращает список адресов доставки, привязанных к контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryAddress'
+              example:
+                - id: 1
+                  counterpartyId: 1
+                  regionId: 10
+                  region:
+                    id: 10
+                    name: Ханты-Мансийский автономный округ — Югра
+                    country: Россия
+                    countryCode: RU
+                    fiasId: 5a76a998-3fa4-49b2-843e-2a1d0999a20f
+                  createdByUserId: 12
+                  value: г Ханты-Мансийск, ул Дзержинского, д 10
+                  unrestrictedValue: 628007, Ханты-Мансийский автономный округ — Югра, г Ханты-Мансийск, ул Дзержинского, д 10
+                  postalCode: '628007'
+                  area: г Ханты-Мансийск
+                  areaFiasId: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+                  city: г Ханты-Мансийск
+                  cityFiasId: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+                  settlement: null
+                  settlementFiasId: null
+                  street: ул Дзержинского
+                  streetFiasId: 2bd635ea-5c05-4f5f-ae5c-8bfc7f84cde2
+                  house: '10'
+                  houseFiasId: 8d713a4a-9dfd-4d39-8c49-23bb18f7be83
+                  houseType: д
+                  block: null
+                  entrance: '2'
+                  floor: '7'
+                  flat: null
+                  flatFiasId: null
+                  comment: Позвонить за 15 минут
+                  createdAt: '2026-07-07 15:00:00'
+                  updatedAt: '2026-07-07 15:00:00'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+
+    post:
+      operationId: createDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Создать адрес доставки
+      description: |
+        Создаёт адрес доставки для контрагента текущего пользователя.
+
+        Клиент передаёт только:
+        - `address` (полный адрес одной строкой)
+        - `entrance`, `floor`, `flat`, `comment` (опционально)
+
+        Остальные поля (регион, город, улица, дом, и т.д.) подтягиваются через DaData.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeliveryAddressRequest'
+            example:
+              address: г Ханты-Мансийск, ул Дзержинского, д 10
+              entrance: '2'
+              floor: '7'
+              flat: '12'
+              comment: Позвонить за 15 минут
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: The given data was invalid.
+                errors:
+                  address:
+                    - Некорректный адрес
+
+  /delivery-addresses/{id}:
+    patch:
+      operationId: updateDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Обновить адрес доставки
+      description: |
+        Обновляет адрес доставки.
+
+        Адрес должен принадлежать контрагенту текущего пользователя.
+        Если передать `address`, адрес будет заново разобран через DaData.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID адреса доставки.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeliveryAddressRequest'
+            example:
+              address: г Ханты-Мансийск, ул Дзержинского, д 10
+              entrance: '1'
+              floor: '3'
+              flat: 'офис 12'
+              comment: Оставить у охраны
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryAddress'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              example:
+                message: The given data was invalid.
+                errors:
+                  address:
+                    - Некорректный адрес
+
+    delete:
+      operationId: deleteDeliveryAddress
+      tags:
+        - Delivery addresses
+      summary: Удалить адрес доставки
+      description: |
+        Удаляет адрес доставки.
+
+        Адрес должен принадлежать контрагенту текущего пользователя.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XSRFTokenHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID адреса доставки.
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Forbidden
+                code: ACCESS_FORBIDDEN
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel-session
+      description: Session cookie (имя может отличаться и задаётся через SESSION_COOKIE; по умолчанию laravel-session).
+  parameters:
+    XSRFTokenHeader:
+      name: X-XSRF-TOKEN
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Значение CSRF-токена (обычно берётся из cookie XSRF-TOKEN после вызова /csrf-cookie).
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequestsError:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Too many requests
+            code: TOO_MANY_REQUESTS
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: Not found
+            code: NOT_FOUND
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        remember:
+          type: boolean
+          default: false
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - phone
+        - inn
+        - fio
+      properties:
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+          description: Email — обязательное поле, которое в дальнейшем будет использоваться как логин для входа в личный кабинет.
+        phone:
+          type: string
+          example: '+79991234567'
+          description: Телефон — контактный номер для связи менеджера с клиентом.
+        inn:
+          type: string
+          example: '1234567890'
+          description: ИНН — первичный шаг формы. Система валидирует формат (для юрлиц или ИП) и запрашивает данные из внешнего справочника.
+          minLength: 10
+          maxLength: 12
+          pattern: '^\\d{10}(\\d{2})?$'
+        name:
+          type: string
+          example: 'ООО "Ромашка"'
+          description: Наименование организации или ИП — подставляется автоматически после ввода ИНН и не редактируется пользователем вручную.
+        kpp:
+          type: string
+          nullable: true
+          example: '123456789'
+          description: КПП — подставляется автоматически из внешнего справочника (для юрлиц) и недоступно для ручного изменения.
+          minLength: 9
+          maxLength: 9
+          pattern: '^\\d{9}$'
+        fio:
+          type: string
+          example: Иванов Иван Иванович
+          description: Контактное лицо (ФИО) — обязательное поле.
+        address:
+          type: string
+          nullable: true
+          example: г. Москва, ул. Пушкина, д. 1
+          description: Адрес — вводится при необходимости (опционально).
+        comment:
+          type: string
+          nullable: true
+          example: Позвонить после 18:00
+          description: Комментарий — дополнительное текстовое поле (опционально)
+
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - token
+        - email
+        - password
+        - passwordConfirmation
+      properties:
+        token:
+          type: string
+          example: 4|pK5...
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        password:
+          type: string
+          format: password
+        passwordConfirmation:
+          type: string
+          format: password
+
+    BannerListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Banner'
+
+    SettingsResponse:
+      type: object
+      description: |
+        Набор публичных настроек приложения.
+
+        Ключи — идентификаторы настроек (например `contacts:phone`).
+        Значения зависят от типа настройки.
+      additionalProperties:
+        oneOf:
+          - type: string
+          - type: integer
+          - type: array
+            items:
+              $ref: '#/components/schemas/SettingsLinkItem'
+
+    SettingsLinkItem:
+      type: object
+      required:
+        - url
+        - open_in_new_tab
+      properties:
+        url:
+          type: string
+          example: /privacy
+        label:
+          type: string
+          nullable: true
+          example: Политика конфиденциальности
+        open_in_new_tab:
+          type: boolean
+          default: false
+
+    Banner:
+      type: object
+      required:
+        - id
+        - imageUrl
+        - targetUrl
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          nullable: true
+          example: Скидки недели
+        subtitle:
+          type: string
+          nullable: true
+          example: До -30% на выделенный ассортимент
+        imageUrl:
+          type: string
+          description: Абсолютный или относительный URL изображения баннера.
+          example: /storage/banners/banner1.jpg
+        targetUrl:
+          type: string
+          description: Абсолютный или относительный URL перехода по баннеру.
+          example: /catalog/sale
+
+    NewsPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    News:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+        - announceText
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Открытие нового магазина
+        slug:
+          type: string
+          example: otkrytie-novogo-magazina
+        announceText:
+          type: string
+          nullable: true
+          example: Короткий анонс новости.
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-14T12:00:00+04:00'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-05-14T12:10:00+04:00'
+        coverImageUrl:
+          type: string
+          nullable: true
+          description: Абсолютный или относительный URL обложки новости.
+          example: /storage/news/cover1.jpg
+
+    NewsDetail:
+      allOf:
+        - $ref: '#/components/schemas/News'
+        - type: object
+          required:
+            - body
+          properties:
+            body:
+              type: string
+              example: Полный текст новости.
+            metaTitle:
+              type: string
+              nullable: true
+              example: Meta title
+            metaDescription:
+              type: string
+              nullable: true
+              example: Meta description
+            metaKeywords:
+              type: string
+              nullable: true
+              example: keyword1, keyword2
+
+    PaginationLinks:
+      type: object
+      required:
+        - first
+        - last
+      properties:
+        first:
+          type: string
+          nullable: true
+          example: https://palizh.nutnetdev.ru/api/news?page=1
+        last:
+          type: string
+          nullable: true
+          example: https://palizh.nutnetdev.ru/api/news?page=10
+        prev:
+          type: string
+          nullable: true
+          example: https://palizh.nutnetdev.ru/api/news?page=1
+        next:
+          type: string
+          nullable: true
+          example: https://palizh.nutnetdev.ru/api/news?page=3
+
+    PaginationMeta:
+      type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 2
+        from:
+          type: integer
+          nullable: true
+          example: 16
+        last_page:
+          type: integer
+          example: 10
+        path:
+          type: string
+          example: https://palizh.nutnetdev.ru/api/news
+        per_page:
+          type: integer
+          example: 15
+        to:
+          type: integer
+          nullable: true
+          example: 30
+        total:
+          type: integer
+          example: 142
+
+    Page:
+      type: object
+      required:
+        - id
+        - slug
+        - title
+        - body
+      properties:
+        id:
+          type: integer
+          example: 1
+        slug:
+          type: string
+          example: about
+        title:
+          type: string
+          example: О компании
+        body:
+          type: string
+          example: Контент страницы.
+        metaTitle:
+          type: string
+          nullable: true
+          example: Meta title
+        metaDescription:
+          type: string
+          nullable: true
+          example: Meta description
+        metaKeywords:
+          type: string
+          nullable: true
+          example: keyword1, keyword2
+
+    PromotionPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PromotionListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    PromotionListItem:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        slug:
+          type: string
+          example: bakery-10-off
+        name:
+          type: string
+          example: Скидка 10% на выпечку
+        description:
+          type: string
+          nullable: true
+          example: Подробное описание акции.
+        startsAt:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-05-01'
+        endsAt:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-05-31'
+        conditions:
+          type: string
+          nullable: true
+          example: Условия участия в акции.
+        applicability:
+          type: string
+          nullable: true
+          example: Где действует акция / на какие товары распространяется.
+        ctaUrl:
+          type: string
+          nullable: true
+          description: Абсолютный или относительный URL для CTA.
+          example: /catalog/sale
+
+    Promotion:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        slug:
+          type: string
+          example: bakery-10-off
+        name:
+          type: string
+          example: Скидка 10% на выпечку
+        description:
+          type: string
+          nullable: true
+          example: Подробное описание акции.
+        startsAt:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-05-01'
+        endsAt:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-05-31'
+        conditions:
+          type: string
+          nullable: true
+          example: Условия участия в акции.
+        applicability:
+          type: string
+          nullable: true
+          example: Где действует акция / на какие товары распространяется.
+        ctaUrl:
+          type: string
+          nullable: true
+          description: Абсолютный или относительный URL для CTA.
+          example: /catalog/sale
+        metaTitle:
+          type: string
+          nullable: true
+          example: Meta title
+        metaDescription:
+          type: string
+          nullable: true
+          example: Meta description
+        metaKeywords:
+          type: string
+          nullable: true
+          example: keyword1, keyword2
+
+    TrainingCategoryListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingCategoryListItem'
+
+    TrainingCategoryListItem:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Курсы для начинающих
+        slug:
+          type: string
+          example: beginner
+
+    TrainingCategory:
+      type: object
+      required:
+        - id
+        - title
+        - slug
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Курсы для начинающих
+        slug:
+          type: string
+          example: beginner
+        metaTitle:
+          type: string
+          nullable: true
+          example: Meta title
+        metaDescription:
+          type: string
+          nullable: true
+          example: Meta description
+        metaKeywords:
+          type: string
+          nullable: true
+          example: keyword1, keyword2
+
+    TrainingProgramPaginationResponse:
+      type: object
+      required:
+        - data
+        - formats
+        - links
+        - meta
+      properties:
+        formats:
+          type: array
+          description: Список доступных форматов мероприятия (для построения фильтров на фронте).
+          items:
+            $ref: '#/components/schemas/TrainingProgramFormatResource'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingProgramListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    TrainingProgramFormat:
+      type: string
+      enum:
+        - online
+        - offline
+        - hybrid
+
+    TrainingProgramFormatResource:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          $ref: '#/components/schemas/TrainingProgramFormat'
+        label:
+          type: string
+          example: Онлайн
+
+    TrainingProgramListItem:
+      type: object
+      required:
+        - id
+        - categories
+        - title
+        - slug
+        - description
+        - format
+        - coverUrl
+        - documents
+        - dateFrom
+        - dateTo
+      properties:
+        id:
+          type: integer
+          example: 1
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingCategoryListItem'
+        title:
+          type: string
+          example: Базовый курс
+        slug:
+          type: string
+          example: basic-course
+        description:
+          type: string
+          example: Описание программы.
+        format:
+          $ref: '#/components/schemas/TrainingProgramFormatResource'
+        durationText:
+          type: string
+          nullable: true
+          example: 2 недели
+        place:
+          type: string
+          nullable: true
+          example: Ижевск, учебный центр
+        priceText:
+          type: string
+          nullable: true
+          example: 10 000 ₽
+        dateFrom:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01T10:00:00+04:00'
+        dateTo:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-14T18:00:00+04:00'
+        coverUrl:
+          type: string
+          nullable: true
+          example: https://example.com/storage/1/cover.jpg
+        coverThumbUrl:
+          type: string
+          nullable: true
+          example: https://example.com/storage/1/conversions/cover-thumb.jpg
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingProgramDocument'
+
+    TrainingProgram:
+      type: object
+      required:
+        - id
+        - categories
+        - title
+        - slug
+        - description
+        - format
+        - coverUrl
+        - documents
+        - dateFrom
+        - dateTo
+      properties:
+        id:
+          type: integer
+          example: 1
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingCategoryListItem'
+        title:
+          type: string
+          example: Базовый курс
+        slug:
+          type: string
+          example: basic-course
+        description:
+          type: string
+          example: Описание программы.
+        format:
+          $ref: '#/components/schemas/TrainingProgramFormatResource'
+        durationText:
+          type: string
+          nullable: true
+          example: 2 недели
+        place:
+          type: string
+          nullable: true
+          example: Ижевск, учебный центр
+        priceText:
+          type: string
+          nullable: true
+          example: 10 000 ₽
+        dateFrom:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01T10:00:00+04:00'
+        dateTo:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-14T18:00:00+04:00'
+        coverUrl:
+          type: string
+          nullable: true
+          example: https://example.com/storage/1/cover.jpg
+        coverThumbUrl:
+          type: string
+          nullable: true
+          example: https://example.com/storage/1/conversions/cover-thumb.jpg
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingProgramDocument'
+        metaTitle:
+          type: string
+          nullable: true
+          example: Meta title
+        metaDescription:
+          type: string
+          nullable: true
+          example: Meta description
+        metaKeywords:
+          type: string
+          nullable: true
+          example: keyword1, keyword2
+
+    TrainingProgramDocument:
+      type: object
+      required:
+        - id
+        - name
+        - url
+        - mimeType
+        - size
+      properties:
+        id:
+          type: integer
+          example: 123
+        name:
+          type: string
+          example: Программа обучения.pdf
+        url:
+          type: string
+          example: https://example.com/storage/1/documents/123.pdf
+        mimeType:
+          type: string
+          example: application/pdf
+        size:
+          type: integer
+          example: 204800
+
+    CategoryListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    Category:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - children
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Торты
+        slug:
+          type: string
+          example: cakes
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          example: []
+      example:
+        id: 1
+        name: Торты
+        slug: cakes
+        children:
+          - id: 2
+            name: Бисквитные торты
+            slug: sponge-cakes
+            children: []
+
+    ProductPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        searchString:
+          type: string
+          nullable: true
+          description: Строка поиска (может отличаться от входной при автоисправлении раскладки). Возвращается только если был применен поиск по q.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    SearchResponse:
+      type: object
+      required:
+        - searchString
+        - nextTokens
+        - data
+      properties:
+        searchString:
+          type: string
+          description: Строка поиска (может отличаться от входной при автоисправлении раскладки).
+        nextTokens:
+          type: array
+          items:
+            type: string
+          description: Подсказки для автодополнения последнего слова или следующего слова поисковой фразы.
+        data:
+          type: object
+          required:
+            - products
+            - categories
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductSearch'
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+
+    ProductSearch:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        slug:
+          type: string
+          example: medovik-1
+        name:
+          type: string
+          description: Highlight (snippet) названия товара из поискового движка. Может содержать HTML-разметку (например, <mark>...</mark>).
+          example: Торт Медовик
+
+    Product:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+        - attributes
+        - characteristics
+      properties:
+        id:
+          type: integer
+          example: 1
+        sku:
+          type: string
+          nullable: true
+          example: PLZ-000123
+        slug:
+          type: string
+          example: medovik-1
+        category:
+          $ref: '#/components/schemas/Category'
+          nullable: true
+        brand:
+          allOf:
+            - $ref: '#/components/schemas/Brand'
+          nullable: true
+        name:
+          type: string
+          example: Торт Медовик
+        description:
+          type: string
+          nullable: true
+          example: Описание товара.
+        productionTimeDays:
+          type: integer
+          nullable: true
+          example: 2
+        unitsPerBox:
+          type: integer
+          nullable: true
+          example: 12
+        weightKg:
+          type: number
+          format: float
+          nullable: true
+          description: Вес 1 товара в кг
+          example: 1.25
+        volumeL:
+          type: number
+          format: float
+          nullable: true
+          description: Объем 1 товара в литрах
+          example: 0.5
+        boxWeightKg:
+          type: number
+          format: float
+          nullable: true
+          description: Вес коробки в кг
+          example: 10.5
+        boxSizeWidthCm:
+          type: number
+          format: float
+          nullable: true
+          description: Ширина коробки в см
+          example: 20.0
+        boxSizeHeightCm:
+          type: number
+          format: float
+          nullable: true
+          description: Высота коробки в см
+          example: 30.0
+        boxSizeLengthCm:
+          type: number
+          format: float
+          nullable: true
+          description: Длина коробки в см
+          example: 40.0
+        marketplaceUrls:
+          type: array
+          items:
+            type: object
+            required:
+              - type
+              - url
+            properties:
+              type:
+                type: string
+              url:
+                type: string
+        images:
+          type: array
+          items:
+            type: string
+          example:
+            - /storage/products/medovik-1.jpg
+            - /storage/products/medovik-2.jpg
+        attributes:
+          $ref: '#/components/schemas/ProductAttributes'
+        characteristics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCharacteristic'
+
+    ProductAttributes:
+      type: object
+      description: |
+        Атрибуты товара.
+
+        Ключи объекта — значения `code` из справочника атрибутов.
+      additionalProperties:
+        $ref: '#/components/schemas/ProductAttributeView'
+      example:
+        worktype:
+          code: worktype
+          label: Типы работ
+          valueType: string
+          filterType: select
+          unit: null
+          isMulti: true
+          values:
+            - id: 10
+              value: Внутренние
+              subvalue: null
+        density:
+          code: density
+          label: Плотность
+          valueType: number
+          filterType: range
+          unit: г/см3
+          isMulti: false
+          value: 1.25
+
+    ProductAttributeView:
+      type: object
+      required:
+        - code
+        - label
+        - valueType
+        - filterType
+        - unit
+        - isMulti
+      properties:
+        code:
+          type: string
+          example: worktype
+        label:
+          type: string
+          example: Типы работ
+        valueType:
+          type: string
+          example: string
+        filterType:
+          type: string
+          example: select
+        unit:
+          type: string
+          nullable: true
+          example: г/см3
+        isMulti:
+          type: boolean
+          example: true
+        values:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ProductAttributeSelectValue'
+        value:
+          nullable: true
+          oneOf:
+            - type: string
+            - type: number
+              format: float
+            - type: boolean
+
+    ProductAttributeSelectValue:
+      type: object
+      required:
+        - id
+        - value
+        - subvalue
+      properties:
+        id:
+          type: integer
+          example: 10
+        value:
+          type: string
+          example: Внутренние
+        subvalue:
+          allOf:
+            - $ref: '#/components/schemas/ProductAttributeSubvalue'
+          nullable: true
+
+    ProductAttributeSubvalue:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          type: string
+          example: compatible
+        label:
+          type: string
+          nullable: true
+          example: Совместимый
+
+    ProductFilter:
+      type: object
+      required:
+        - code
+        - label
+        - valueType
+        - filterType
+        - unit
+      properties:
+        code:
+          type: string
+          example: worktype
+        label:
+          type: string
+          example: Типы работ
+        valueType:
+          type: string
+          example: string
+        filterType:
+          type: string
+          example: select
+        unit:
+          type: string
+          nullable: true
+          example: г/см3
+        values:
+          type: array
+          nullable: true
+          items:
+            type: object
+            required:
+              - id
+              - value
+            properties:
+              id:
+                type: integer
+              value:
+                type: string
+        range:
+          type: object
+          nullable: true
+          required:
+            - min
+            - max
+          properties:
+            min:
+              type: number
+              format: float
+            max:
+              type: number
+              format: float
+
+    Brand:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Палыч
+
+    ProductCharacteristic:
+      type: object
+      required:
+        - id
+        - name
+        - isSelected
+        - stockQty
+        - userPrices
+      properties:
+        id:
+          type: integer
+          example: 10
+        name:
+          type: string
+          example: 1 кг
+        isSelected:
+          type: boolean
+          example: true
+        stockQty:
+          type: number
+          example: 12.5
+        userPrices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductPrice'
+
+    ProductPrice:
+      type: object
+      required:
+        - id
+        - currency
+        - amount
+        - priceTypeCode
+      properties:
+        id:
+          type: integer
+          example: 1
+        currency:
+          type: string
+          example: RUB
+        amount:
+          type: string
+          example: '1290.50'
+        amountPerBox:
+          type: string
+          nullable: true
+          example: '15486.00'
+        discountedAmount:
+          type: string
+          nullable: true
+          example: '1190.50'
+        discountedAmountPerBox:
+          type: string
+          nullable: true
+          example: '14286.00'
+        priceTypeCode:
+          type: string
+          example: RETAIL
+
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          example: 1290.5
+        currency:
+          type: string
+          example: RUB
+
+    UpdateMeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Иванов Иван Иванович
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        phone:
+          type: string
+          nullable: true
+          example: '+79991234567'
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - password
+        - passwordConfirmation
+      properties:
+        currentPassword:
+          type: string
+          format: password
+        password:
+          type: string
+          format: password
+          minLength: 6
+        passwordConfirmation:
+          type: string
+          format: password
+
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - role
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Иванов Иван Иванович
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: user@example.com
+        role:
+          type: string
+          enum:
+            - purchaser
+            - accountant
+          example: purchaser
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          nullable: true
+          enum:
+            - purchaser
+            - accountant
+          example: accountant
+          description: Новая роль пользователя. Роль `director` назначить нельзя.
+        is_blocked:
+          type: boolean
+          nullable: true
+          example: true
+          description: Статус блокировки пользователя.
+
+    Region:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          example: 10
+        name:
+          type: string
+          example: Ханты-Мансийский автономный округ — Югра
+        country:
+          type: string
+          nullable: true
+          example: Россия
+        countryCode:
+          type: string
+          nullable: true
+          example: RU
+        fiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 5a76a998-3fa4-49b2-843e-2a1d0999a20f
+
+    DeliveryAddress:
+      type: object
+      required:
+        - id
+        - counterpartyId
+        - regionId
+      properties:
+        id:
+          type: integer
+          example: 1
+        counterpartyId:
+          type: integer
+          example: 1
+        regionId:
+          type: integer
+          example: 10
+        region:
+          allOf:
+            - $ref: '#/components/schemas/Region'
+          nullable: true
+        createdByUserId:
+          type: integer
+          nullable: true
+          example: 12
+        value:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        unrestrictedValue:
+          type: string
+          nullable: true
+          example: 628007, Ханты-Мансийский автономный округ — Югра, г Ханты-Мансийск, ул Дзержинского, д 10
+        postalCode:
+          type: string
+          nullable: true
+          example: '628007'
+        area:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск
+        areaFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+        city:
+          type: string
+          nullable: true
+          example: г Ханты-Мансийск
+        cityFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 6a6a1f6f-3f02-4c7a-9a66-7b6f52d4a7d6
+        settlement:
+          type: string
+          nullable: true
+        settlementFiasId:
+          type: string
+          format: uuid
+          nullable: true
+        street:
+          type: string
+          nullable: true
+          example: ул Дзержинского
+        streetFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 2bd635ea-5c05-4f5f-ae5c-8bfc7f84cde2
+        house:
+          type: string
+          nullable: true
+          example: '10'
+        houseFiasId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 8d713a4a-9dfd-4d39-8c49-23bb18f7be83
+        houseType:
+          type: string
+          nullable: true
+          example: д
+        block:
+          type: string
+          nullable: true
+        entrance:
+          type: string
+          nullable: true
+          example: '2'
+        floor:
+          type: string
+          nullable: true
+          example: '7'
+        flat:
+          type: string
+          nullable: true
+        flatFiasId:
+          type: string
+          format: uuid
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+          example: Позвонить за 15 минут
+        createdAt:
+          type: string
+          nullable: true
+          example: '2026-07-07 15:00:00'
+        updatedAt:
+          type: string
+          nullable: true
+          example: '2026-07-07 15:00:00'
+
+    CreateDeliveryAddressRequest:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          maxLength: 1024
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        entrance:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '2'
+        floor:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '7'
+        flat:
+          type: string
+          nullable: true
+          maxLength: 32
+          example: '12'
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: Позвонить за 15 минут
+
+    UpdateDeliveryAddressRequest:
+      type: object
+      properties:
+        address:
+          type: string
+          maxLength: 1024
+          example: г Ханты-Мансийск, ул Дзержинского, д 10
+        entrance:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '1'
+        floor:
+          type: string
+          nullable: true
+          maxLength: 16
+          example: '3'
+        flat:
+          type: string
+          nullable: true
+          maxLength: 32
+          example: офис 12
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: Оставить у охраны
+
+    Counterparty:
+      type: object
+      required:
+        - id
+        - name
+        - hasPostpayAccess
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: ООО "Ромашка"
+        inn:
+          type: string
+          nullable: true
+          example: '1234567890'
+        kpp:
+          type: string
+          nullable: true
+          example: '123456789'
+        legalAddress:
+          type: string
+          nullable: true
+          example: г. Москва, ул. Пушкина, д. 1
+        priceTypeCode:
+          type: string
+          nullable: true
+          example: retail
+        paymentMode:
+          type: string
+          nullable: true
+          example: postpay
+        defermentDays:
+          type: integer
+          nullable: true
+          example: 14
+        creditLimit:
+          type: string
+          nullable: true
+          example: '100000.00'
+        hasPostpayAccess:
+          type: boolean
+          example: true
+
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Иванов Иван Иванович
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        phone:
+          type: string
+          nullable: true
+          example: '+79991234567'
+        counterparty:
+          allOf:
+            - $ref: '#/components/schemas/Counterparty'
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Unauthorized
+        code:
+          type: string
+          nullable: true
+          example: AUTH_REQUIRED
+
+    CreateTrainingRequestBody:
+      type: object
+      required:
+        - programId
+        - contactName
+        - contactPhone
+        - contactEmail
+        - participantsCount
+        - preferredFormat
+        - preferredDate
+        - questionsToCover
+      properties:
+        programId:
+          type: integer
+          example: 1
+          description: ID программы обучения. Подставляется автоматически из карточки программы.
+        contactName:
+          type: string
+          example: Иванов Иван Иванович
+          description: ФИО контактного лица. Может подставляться из профиля пользователя ЛК.
+        contactPhone:
+          type: string
+          example: '+79991234567'
+          minLength: 7
+          maxLength: 30
+        contactEmail:
+          type: string
+          format: email
+          example: ivan@example.com
+        participantsCount:
+          type: integer
+          minimum: 1
+          example: 5
+          description: Количество обучающихся.
+        preferredFormat:
+          type: string
+          enum:
+            - online
+            - offline
+            - hybrid
+          example: online
+          description: Желаемый формат обучения.
+        preferredDate:
+          type: string
+          format: date
+          example: '2026-07-01'
+          description: Желаемая дата начала обучения.
+        questionsToCover:
+          type: string
+          example: Хотим изучить управление складом и логистикой.
+          description: Вопросы и темы для обсуждения на обучении.
+        comment:
+          type: string
+          nullable: true
+          example: Предпочтительно во второй половине дня.
+          description: Дополнительный комментарий (опционально).
+
+    TrainingRequestPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingRequest'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    TrainingRequest:
+      type: object
+      required:
+        - id
+        - program
+        - contactName
+        - contactPhone
+        - contactEmail
+        - participantsCount
+        - preferredFormat
+        - preferredDate
+        - questionsToCover
+        - createdAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        program:
+          type: object
+          required:
+            - id
+            - title
+            - slug
+          properties:
+            id:
+              type: integer
+              example: 1
+            title:
+              type: string
+              example: Базовый курс
+            slug:
+              type: string
+              example: basic-course
+        contactName:
+          type: string
+          example: Иванов Иван Иванович
+        contactPhone:
+          type: string
+          example: '+79991234567'
+        contactEmail:
+          type: string
+          format: email
+          example: ivan@example.com
+        participantsCount:
+          type: integer
+          example: 5
+        preferredFormat:
+          type: string
+          enum:
+            - online
+            - offline
+            - hybrid
+          example: online
+        preferredDate:
+          type: string
+          format: date
+          example: '2026-07-01'
+        questionsToCover:
+          type: string
+          example: Хотим изучить управление складом.
+        comment:
+          type: string
+          nullable: true
+          example: Предпочтительно во второй половине дня.
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-05-27T13:00:00+04:00'
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - message
+        - errors
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - The email field is required.
+
+    SetCartItemQtyRequest:
+      type: object
+      required:
+        - productId
+        - characteristicId
+        - qty
+      properties:
+        productId:
+          type: integer
+          example: 1
+        characteristicId:
+          type: integer
+          example: 10
+        qty:
+          type: integer
+          minimum: 0
+          example: 2
+
+    Cart:
+      type: object
+      required:
+        - id
+        - currency
+        - priceTypeCode
+        - totalQty
+        - totalPrice
+        - items
+      properties:
+        id:
+          type: integer
+          example: 1
+        currency:
+          type: string
+          example: RUB
+        priceTypeCode:
+          type: string
+          example: B2B_BASE
+        totalQty:
+          type: integer
+          example: 3
+        totalPrice:
+          type: string
+          example: '1290.50'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+
+    CartItem:
+      type: object
+      required:
+        - id
+        - productId
+        - characteristicId
+        - qty
+        - unitPrice
+      properties:
+        id:
+          type: integer
+          example: 1
+        productId:
+          type: integer
+          example: 1
+        characteristicId:
+          type: integer
+          example: 10
+        qty:
+          type: integer
+          example: 2
+        unitPrice:
+          type: string
+          example: '1290.50'
+        unitsPerBox:
+          type: integer
+          nullable: true
+          example: 10
+        amountPerBox:
+          type: string
+          nullable: true
+          example: '1000.00'
+        discountedUnitPrice:
+          type: string
+          nullable: true
+          example: '110.00'
+        discountedAmountPerBox:
+          type: string
+          nullable: true
+          example: '900.00'
+        lineTotal:
+          type: string
+          nullable: true
+          example: '1450.00'
+        product:
+          allOf:
+            - $ref: '#/components/schemas/Product'
+          nullable: true
+
+    FavoriteProductRequest:
+      type: object
+      required:
+        - productId
+        - characteristicId
+      properties:
+        productId:
+          type: integer
+          example: 1
+        characteristicId:
+          type: integer
+          example: 10
+
+    FavoriteProductPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FavoriteProduct'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    FavoriteProduct:
+      type: object
+      required:
+        - id
+        - productId
+        - characteristicId
+        - createdAt
+        - product
+      properties:
+        id:
+          type: integer
+          example: 1
+        productId:
+          type: integer
+          example: 1
+        characteristicId:
+          type: integer
+          example: 10
+        createdAt:
+          type: string
+          nullable: true
+          example: '2026-06-15 15:42:00'
+        product:
+          allOf:
+            - $ref: '#/components/schemas/Product'
+          nullable: true
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - contactName
+        - contactPhone
+        - contactEmail
+        - deliveryType
+        - deliveryAddressId
+        - deliveryInfo
+        - comment
+      properties:
+        contactName:
+          type: string
+          example: Иванов Иван Иванович
+        contactPhone:
+          type: string
+          example: '+79991234567'
+          minLength: 7
+          maxLength: 30
+        contactEmail:
+          type: string
+          format: email
+          example: ivan@example.com
+        deliveryType:
+          $ref: '#/components/schemas/DeliveryType'
+        deliveryAddressId:
+          type: integer
+          minimum: 1
+          example: 1
+          description: ID адреса доставки (из справочника адресов доставки контрагента).
+        deliveryInfo:
+          type: object
+          description: |
+            Данные доставки. Структура зависит от `deliveryType`.
+          additionalProperties: true
+        comment:
+          type: string
+          example: Позвоните за час до доставки.
+
+    DeliveryType:
+      type: string
+      enum:
+        - palizh
+        - tk
+      example: palizh
+
+    OrderStatus:
+      type: string
+      enum:
+        - processing
+        - in_production
+        - ready_for_assembly
+        - ready_for_shipping
+        - shipped
+        - completed
+      example: processing
+
+    OrderStatusResource:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          $ref: '#/components/schemas/OrderStatus'
+        label:
+          type: string
+          example: Обрабатывается
+
+    OrderPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    DocumentRelatedEntityType:
+      type: string
+      enum:
+        - order
+        - counterparty
+      example: order
+
+    DocumentPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    DocumentListItem:
+      type: object
+      required:
+        - guid
+        - title
+        - type
+        - relatedEntityType
+        - relatedEntityId
+        - createdAt
+        - downloadUrl
+      properties:
+        guid:
+          type: string
+          format: uuid
+          example: 9c1b2c3d-4e5f-6789-aaaa-bbbbbbbbbbbb
+        title:
+          type: string
+          example: Счет №123
+        type:
+          type: string
+          example: invoice
+        relatedEntityType:
+          type: string
+          example: order
+        relatedEntityId:
+          type: integer
+          example: 1001
+        createdAt:
+          type: string
+          example: '2026-07-17 11:00:00'
+        downloadUrl:
+          type: string
+          format: uri
+          example: https://palizh.nutnetdev.ru/api/documents/9c1b2c3d-4e5f-6789-aaaa-bbbbbbbbbbbb/download
+
+    OrderListItem:
+      type: object
+      required:
+        - id
+        - guid
+        - number
+        - createdAt
+        - status
+        - deliveryType
+        - currency
+        - totalQty
+        - totalPrice
+      properties:
+        id:
+          type: integer
+          example: 1001
+        guid:
+          type: string
+          format: uuid
+          example: 9c1b2c3d-4e5f-6789-aaaa-bbbbbbbbbbbb
+        number:
+          type: string
+          nullable: true
+          description: Номер заказа в 1С. Может быть пустым до успешной синхронизации.
+          example: НВ00-003086
+        createdAt:
+          type: string
+          example: '2026-06-01 15:42:00'
+        status:
+          $ref: '#/components/schemas/OrderStatusResource'
+        deliveryType:
+          $ref: '#/components/schemas/DeliveryType'
+        currency:
+          type: string
+          example: RUB
+        totalQty:
+          type: integer
+          example: 3
+        totalPrice:
+          type: string
+          example: '1290.50'
+
+    Order:
+      allOf:
+        - $ref: '#/components/schemas/OrderListItem'
+        - type: object
+          required:
+            - contactName
+            - contactPhone
+            - contactEmail
+            - deliveryInfo
+            - comment
+            - priceTypeCode
+            - items
+          properties:
+            contactName:
+              type: string
+              example: Иванов Иван Иванович
+            contactPhone:
+              type: string
+              example: '+79991234567'
+            contactEmail:
+              type: string
+              format: email
+              example: ivan@example.com
+            deliveryInfo:
+              type: object
+              additionalProperties: true
+              example:
+                address: г. Самара, ул. Ленина, 1
+            comment:
+              type: string
+              example: Позвоните за час до доставки.
+            priceTypeCode:
+              type: string
+              example: B2B_BASE
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderItem'
+
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          required:
+            - statusTransitions
+          properties:
+            deliveryAddressId:
+              type: integer
+              nullable: true
+              example: 1
+            deliveryAddress:
+              type: string
+              nullable: true
+              example: г. Самара, ул. Ленина, 1
+            statusTransitions:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderStatusTransition'
+
+    OrderStatusTransition:
+      type: object
+      required:
+        - id
+        - createdAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        fromStatus:
+          allOf:
+            - $ref: '#/components/schemas/OrderStatusResource'
+          nullable: true
+        toStatus:
+          $ref: '#/components/schemas/OrderStatusResource'
+        createdAt:
+          type: string
+          example: '2026-06-01 15:42:00'
+
+    OrderItem:
+      type: object
+      required:
+        - id
+        - productId
+        - characteristicId
+        - productName
+        - characteristicName
+        - qty
+        - unitPrice
+        - totalPrice
+      properties:
+        id:
+          type: integer
+          example: 1
+        productId:
+          type: integer
+          example: 1
+        characteristicId:
+          type: integer
+          example: 10
+        productName:
+          type: string
+          example: Торт Медовик
+        characteristicName:
+          type: string
+          example: 1 кг
+        qty:
+          type: integer
+          example: 15
+        unitPrice:
+          type: string
+          example: '120.00'
+        unitsPerBox:
+          type: integer
+          nullable: true
+          example: 10
+        amountPerBox:
+          type: string
+          nullable: true
+          example: '1000.00'
+        discountedUnitPrice:
+          type: string
+          nullable: true
+          example: '110.00'
+        discountedAmountPerBox:
+          type: string
+          nullable: true
+          example: '900.00'
+        totalPrice:
+          type: string
+          example: '1450.00'
+    RepeatOrderResponse:
+      type: object
+      required:
+        - cart
+        - skippedItems
+        - adjustedItems
+      properties:
+        cart:
+          $ref: '#/components/schemas/Cart'
+        skippedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepeatOrderSkippedItem'
+        adjustedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepeatOrderAdjustedItem'
+
+    RepeatOrderSkippedItem:
+      type: object
+      required:
+        - productId
+        - characteristicId
+        - productName
+        - characteristicName
+        - requestedQty
+        - availableQty
+        - reason
+      properties:
+        productId:
+          type: integer
+        characteristicId:
+          type: integer
+        productName:
+          type: string
+        characteristicName:
+          type: string
+        requestedQty:
+          type: integer
+        availableQty:
+          type: integer
+        reason:
+          type: string
+          enum:
+            - PRODUCT_NOT_AVAILABLE
+            - CHARACTERISTIC_NOT_AVAILABLE
+            - OUT_OF_STOCK
+
+    RepeatOrderAdjustedItem:
+      type: object
+      required:
+        - productId
+        - characteristicId
+        - productName
+        - characteristicName
+        - requestedQty
+        - addedQty
+        - availableQty
+        - reason
+      properties:
+        productId:
+          type: integer
+        characteristicId:
+          type: integer
+        productName:
+          type: string
+        characteristicName:
+          type: string
+        requestedQty:
+          type: integer
+        addedQty:
+          type: integer
+        availableQty:
+          type: integer
+        reason:
+          type: string
+          enum:
+            - LOW_STOCK
+
+    ClaimRequestType:
+      type: string
+      enum:
+        - claim
+        - request
+      example: claim
+      description: |
+        Тип обращения:
+        - `claim` — претензия
+        - `request` — обращение
+
+    ClaimType:
+      type: string
+      enum:
+        - damage
+        - shortage
+        - surplus
+        - quality
+      example: damage
+      description: |
+        Тип претензии:
+        - `damage` — повреждение
+        - `shortage` — недостача
+        - `surplus` — излишек
+        - `quality` — качество
+
+    ClaimStatus:
+      type: string
+      enum:
+        - submitted
+        - review
+        - done
+        - error
+      example: submitted
+
+    ClaimStatusResource:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          $ref: '#/components/schemas/ClaimStatus'
+        label:
+          type: string
+          example: Создана
+
+    CreateClaimRequest:
+      type: object
+      required:
+        - order_id
+        - request_type
+        - title
+        - description
+      properties:
+        order_id:
+          type: integer
+          example: 1001
+          description: ID заказа. Должен существовать в системе.
+        request_type:
+          $ref: '#/components/schemas/ClaimRequestType'
+        claim_type:
+          allOf:
+            - $ref: '#/components/schemas/ClaimType'
+          nullable: true
+          description: Тип претензии. Опционально.
+        title:
+          type: string
+          example: Бой при доставке
+        description:
+          type: string
+          example: При получении обнаружен повреждённый товар.
+        items:
+          type: array
+          nullable: true
+          description: |
+            Список ID позиций заказа (`order_items.id`), к которым относится претензия.
+            Если не передан — претензия создаётся без привязки к конкретным позициям.
+          items:
+            type: integer
+          example:
+            - 1
+            - 2
+        images:
+          type: array
+          nullable: true
+          description: |
+            Файлы изображений.
+            Отправляется как multipart/form-data: `images[]`.
+          items:
+            type: string
+            format: binary
+        files:
+          type: array
+          nullable: true
+          description: |
+            Прочие файлы.
+            Отправляется как multipart/form-data: `files[]`.
+          items:
+            type: string
+            format: binary
+
+    ClaimPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Claim'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    Claim:
+      type: object
+      required:
+        - id
+        - guid
+        - title
+        - status
+        - request_type
+        - created_at
+        - items
+      properties:
+        id:
+          type: integer
+          example: 1
+        guid:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        title:
+          type: string
+          example: Бой при доставке
+        status:
+          $ref: '#/components/schemas/ClaimStatusResource'
+        request_type:
+          $ref: '#/components/schemas/ClaimRequestType'
+        claim_type:
+          allOf:
+            - $ref: '#/components/schemas/ClaimType'
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-03 13:20:00'
+        updated_at:
+          type: string
+          format: date-time
+          example: '2026-06-03 13:20:00'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimItem'
+        images:
+          type: array
+          description: Список URL изображений, прикреплённых к обращению.
+          items:
+            type: string
+          example:
+            - https://palizh.nutnetdev.ru/storage/claims/images/example-1.jpg
+        files:
+          type: array
+          description: Список URL файлов, прикреплённых к обращению.
+          items:
+            type: string
+          example:
+            - https://palizh.nutnetdev.ru/storage/claims/files/example-1.pdf
+
+    ClaimItem:
+      type: object
+      required:
+        - order_item
+      properties:
+        order_item:
+          $ref: '#/components/schemas/ClaimOrderItem'
+
+    ClaimOrderItem:
+      type: object
+      properties:
+        product_name:
+          type: string
+          nullable: true
+          example: Торт Медовик
+        product_type_characteristic_name:
+          type: string
+          nullable: true
+          example: 1 кг
+        qty:
+          type: integer
+          nullable: true
+          example: 2
+        unit_price:
+          type: string
+          nullable: true
+          example: '1290.50'
+        total_price:
+          type: string
+          nullable: true
+          example: '2581.00'
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01 15:42:00'
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01 15:42:00'
+
+    AccountNotification:
+      type: object
+      required:
+        - id
+        - data
+        - is_read
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        data:
+          type: object
+          description: Данные уведомления (зависит от типа уведомления)
+          example:
+            message: Ваш заказ принят
+        is_read:
+          type: boolean
+          description: Прочитано ли уведомление
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-06-26T14:00:00+04:00'
+
+    NotificationPaginationResponse:
+      type: object
+      required:
+        - data
+        - links
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountNotification'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+```
